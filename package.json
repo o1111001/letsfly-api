@@ -1,0 +1,35 @@
+{
+  "name": "messages.gg_api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/o1111001/messages.gg_api.git"
+  },
+  "author": "o1111001",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/o1111001/messages.gg_api/issues"
+  },
+  "homepage": "https://github.com/o1111001/messages.gg_api#readme",
+  "dependencies": {
+    "bcrypt": "^4.0.1",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonschema": "^1.2.6",
+    "jsonwebtoken": "^8.5.1",
+    "knex": "^0.21.1",
+    "nodemailer": "^6.4.6",
+    "pg": "^8.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.2"
+  }
+}
