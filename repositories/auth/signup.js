@@ -26,7 +26,7 @@ class SignUp {
           createdAt: db.fn.now(6),
           updatedAt: db.fn.now(6),
         })
-        .then(resolve())
+        .then(res => resolve(res))
         .catch(err => reject(err));
     });
   }
@@ -39,7 +39,7 @@ class SignUp {
         .update({
           hash,
         })
-        .then(resolve())
+        .then(res => resolve(res))
         .catch(err => reject(err));
     });
   }

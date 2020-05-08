@@ -8,10 +8,9 @@ const signUp = async email => {
   await newUser.checkExists();
   await newUser.create();
   const code = generateCode();
-
   const hash = await Hash.generate(code);
   await newUser.addCode(hash);
-  await sendMail(email, 'Login code', code);
+  sendMail(email, 'Login code', code);
   return code;
 };
 
