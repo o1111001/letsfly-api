@@ -38,7 +38,7 @@ router.post('/login/code',
 
 router.get('/verify',
   authorized,
-  (req, res) => res.send('sdfsdfsdf'),
+  (req, res) => res.send('Authorized'),
 );
 
 module.exports = router;

@@ -14,6 +14,8 @@ require('./config/db');
 const bodyParser = require('body-parser');
 
 const authRoutes = require('./routes/auth');
+const usersRoutes = require('./routes/user');
+
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
@@ -27,6 +29,7 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/users', usersRoutes);
 
 app.listen(PORT,
   () => console.log(`Server listening on ${PORT} port`));
