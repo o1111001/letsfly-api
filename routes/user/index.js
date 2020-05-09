@@ -13,6 +13,7 @@ const {
     updateFirstName,
     updateLastName,
     updateAbout,
+    updateAvatar,
   },
 } = require('../../controllers');
 
@@ -24,8 +25,11 @@ const {
     validateFirstName,
     validateLastName,
     validateAbout,
+    validateAvatar,
   },
 } = require('../../middlewares/user');
+
+const { upload } = require('../../services/files');
 
 router.get('/bio/:id',
   validateGetBio,
@@ -61,6 +65,13 @@ router.put('/bio/about',
   validateAbout,
   authorized,
   (req, res) => updateAbout(req, res),
+);
+
+router.put('/bio/avatar',
+  validateAvatar,
+  authorized,
+  upload('avatars').single('avatar'),
+  (req, res) => updateAvatar(req, res),
 );
 
 module.exports = router;

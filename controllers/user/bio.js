@@ -5,6 +5,7 @@ const { bio: {
   updateFirstName: updateFirstNameService,
   updateLastName: updateLastNameService,
   updateAbout: updateAboutService,
+  updateAvatar: updateAvatarService,
 } } = require('../../services/user');
 
 const { sendError } = require('../../helpers/responses');
@@ -85,6 +86,17 @@ const updateAbout = async (req, res) => {
   }
 };
 
+const updateAvatar = async (req, res) => {
+  try {
+    const { id } = req.locals;
+    const { file: { path } } = req;
+    const bio = await updateAvatarService(id, path);
+    return res.send(response(bio));
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
 module.exports = {
   getBio,
   updateUsername,
@@ -92,4 +104,5 @@ module.exports = {
   updateFirstName,
   updateLastName,
   updateAbout,
+  updateAvatar,
 };
