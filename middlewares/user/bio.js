@@ -80,7 +80,6 @@ const validateUsername = (req, res, next) => {
 
 const validatePhoneNumber = (req, res, next) => {
   const validationResult = v.validate(req.body, phoneNumberSchema);
-  console.log(validationResult)
   if (validationResult.errors.length) {
     return res.status(422).send({ message: 'Wrong phone number format' });
   }
@@ -111,6 +110,23 @@ const validateAbout = (req, res, next) => {
   return next();
 };
 
+const validateAvatar = (req, res, next) => {
+  if (req.headers['content-type']) {
+    const verifyType = req.headers['content-type'].split('=')[0];
+    if (verifyType === 'multipart/form-data; boundary') {
+      return next();
+    } else {
+      return res.status(422).send({
+        message: 'Wrong type',
+      });
+    }
+  } else {
+    return res.status(422).send({
+      message: 'Wrong type',
+    });
+  }
+};
+
 module.exports = {
   validateGetBio,
   validateUsername,
@@ -118,4 +134,5 @@ module.exports = {
   validateFirstName,
   validateLastName,
   validateAbout,
+  validateAvatar,
 };

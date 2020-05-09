@@ -50,6 +50,12 @@ const updateAbout = async (id, about) => {
   return updatedUser[0];
 };
 
+const updateAvatar = async (id, path) => {
+  const user = new BioRepo(id);
+  const updatedUser = await user.updateAvatar(path);
+  return updatedUser[0];
+};
+
 module.exports = {
   getBio,
   updateUsername,
@@ -57,4 +63,5 @@ module.exports = {
   updateFirstName,
   updateLastName,
   updateAbout,
+  updateAvatar,
 };
