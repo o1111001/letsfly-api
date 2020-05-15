@@ -4,19 +4,16 @@ class Bio {
   constructor(id) {
     this.id = id;
   }
-  get() {
+  get(me) {
     const { id } = this;
     return new Promise((resolve, reject) => {
-      db.select('username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
-        .from('users')
-        .where({
-          id,
-        })
+      db.raw(`SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", (select "c"."userId"::boolean from contacts c where "c"."userId" = ? and "c"."contact" = ?) as "contact" FROM users u WHERE "u"."id" = ?`, [me, id, id])
         .then(result => {
-          if (result.length) return resolve(result[0]);
+          if (result.rows.length) return resolve(result.rows[0]);
           return reject('User does not exist');
         })
         .catch(err => reject(err));
+
     });
   }
 

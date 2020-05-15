@@ -4,6 +4,7 @@ const {
     addContact: addContactService,
     deleteContact: deleteContactService,
     findContactsUsername: findContactsUsernameService,
+    findContactsEmail: findContactsEmailService,
     findContactsFullname: findContactsFullnameService,
   } } = require('../../services/contacts');
 
@@ -49,7 +50,22 @@ const deleteContact = async (req, res) => {
 const findContacts = async (req, res) => {
   try {
     const { username } = req.params;
-    const data = await findContactsUsernameService(username);
+    const { id } = req.locals;
+
+    const data = await findContactsUsernameService(id, username);
+    return res.send(response(data));
+
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+const findContactsEmail = async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { id } = req.locals;
+
+    const data = await findContactsEmailService(id, email);
     return res.send(response(data));
 
   } catch (error) {
@@ -60,7 +76,9 @@ const findContacts = async (req, res) => {
 const findContactsFullname = async (req, res) => {
   try {
     const { fullname } = req.params;
-    const data = await findContactsFullnameService(fullname);
+    const { id } = req.locals;
+
+    const data = await findContactsFullnameService(id, fullname);
     return res.send(response(data));
 
   } catch (error) {
@@ -73,4 +91,5 @@ module.exports = {
   deleteContact,
   findContacts,
   findContactsFullname,
+  findContactsEmail,
 };
