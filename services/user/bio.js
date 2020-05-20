@@ -1,8 +1,8 @@
 const { bio: BioRepo } = require('../../repositories');
 
-const getBio = async id => {
+const getBio = async (id, me) => {
   const user = new BioRepo(id);
-  const bio = await user.get(id);
+  const bio = await user.get(me);
   return bio;
 };
 

@@ -26,15 +26,21 @@ const deleteContact = async (userId, contactId) => {
   return result;
 };
 
-const findContactsUsername = async username => {
+const findContactsUsername = async (id, username) => {
   const user = new ContactsRepo();
-  const result = await user.findUsername(username);
+  const result = await user.findUsername(id, username);
   return result;
 };
 
-const findContactsFullname = async fullname => {
+const findContactsEmail = async (id, email) => {
   const user = new ContactsRepo();
-  const result = await user.findFullname(fullname);
+  const result = await user.findEmail(id, email);
+  return result;
+};
+
+const findContactsFullname = async (id, fullname) => {
+  const user = new ContactsRepo();
+  const result = await user.findFullname(id, fullname);
   return result;
 };
 
@@ -43,5 +49,6 @@ module.exports = {
   addContact,
   deleteContact,
   findContactsUsername,
+  findContactsEmail,
   findContactsFullname,
 };

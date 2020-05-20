@@ -23,7 +23,8 @@ const getBio = async (req, res) => {
     if (id === 'me') {
       id = req.locals.id;
     }
-    const bio = await getBioService(id);
+    const me = req.locals.id;
+    const bio = await getBioService(id, me);
     return res.send(response(bio));
 
   } catch (error) {

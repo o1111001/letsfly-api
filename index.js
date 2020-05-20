@@ -18,8 +18,16 @@ const usersRoutes = require('./routes/user');
 const contactsRoutes = require('./routes/contact');
 const filesRoutes = require('./routes/files');
 
+var whitelist = ['http://localhost:3000']
+var corsOptions = {
+  origin: 'http://localhost:3000',
+  credentials: true,
+
+}
+
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cors());
+
 app.use(cookieParser());
 app.disable('x-powered-by');
 

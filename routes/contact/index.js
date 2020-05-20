@@ -12,6 +12,7 @@ const {
     deleteContact,
     findContacts,
     findContactsFullname,
+    findContactsEmail,
   },
 } = require('../../controllers');
 
@@ -33,6 +34,12 @@ router.get('/find/username/:username',
   validateGetContactUsername,
   authorized,
   (req, res) => findContacts(req, res),
+);
+
+router.get('/find/email/:email',
+  // validateGetContactFu,
+  authorized,
+  (req, res) => findContactsEmail(req, res),
 );
 
 router.get('/find/fullname/:fullname',

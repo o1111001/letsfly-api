@@ -1,6 +1,6 @@
 exports.up = knex => knex.schema.createTable('contacts', t => {
-  t.string('userId').notNull();
-  t.string('contact').nullable();
+  t.integer('userId').notNull();
+  t.integer('contact').nullable();
   t.unique(['userId', 'contact']);
 });
 

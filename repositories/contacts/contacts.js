@@ -49,22 +49,33 @@ class Contacts {
         .catch(err => reject(err));
     });
   }
-  findUsername(username) {
+  findUsername(id, username) {
     const usernameRegex = `${username}%`.toLowerCase();
     return new Promise((resolve, reject) => {
       db.select('id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
         .from('users')
-        .whereRaw('username like ?', [usernameRegex])
+        .whereRaw('id != ? and username like ?', [id, usernameRegex])
         .then(result => resolve(result))
         .catch(err => reject(err));
     });
   }
-  findFullname(fullname) {
+  findEmail(id, email) {
+    const emailRegex = `${email}%`.toLowerCase();
+    return new Promise((resolve, reject) => {
+      db.select('id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
+        .from('users')
+        .whereRaw('id != ? and email like ?', [id, emailRegex])
+        .then(result => resolve(result))
+        .catch(err => reject(err));
+    });
+  }
+
+  findFullname(id, fullname) {
     const fullnameRegex = `${fullname}%`.toLowerCase();
     return new Promise((resolve, reject) => {
       db.select('id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
         .from('users')
-        .whereRaw(`concat_ws(' ', "firstName", "lastName") like ?`, [fullnameRegex])
+        .whereRaw(`id != ? and concat_ws(' ', "firstName", "lastName") like ?`, [id, fullnameRegex])
         .then(result => resolve(result))
         .catch(err => reject(err));
     });
