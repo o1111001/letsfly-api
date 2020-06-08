@@ -6,10 +6,10 @@ const getAllContacts = async id => {
   return contacts;
 };
 
-const addContact = async (userId, contactId) => {
+const addContact = async (userId, contactId, displayedName) => {
   try {
     if (userId === contactId) throw 'You cannot add yourself to contacts';
-    const user = new ContactsRepo(userId, contactId);
+    const user = new ContactsRepo(userId, contactId, displayedName);
     await user.add();
     return;
   } catch (error) {
@@ -32,9 +32,21 @@ const findContactsUsername = async (id, username) => {
   return result;
 };
 
+const findDisplayedName = async (id, displayedName) => {
+  const user = new ContactsRepo();
+  const result = await user.findDisplayedName(id, displayedName);
+  return result;
+};
+
 const findContactsEmail = async (id, email) => {
   const user = new ContactsRepo();
   const result = await user.findEmail(id, email);
+  return result;
+};
+
+const findContactEmail = async (id, email) => {
+  const user = new ContactsRepo();
+  const result = await user.findFullCompareEmail(id, email);
   return result;
 };
 
@@ -44,11 +56,20 @@ const findContactsFullname = async (id, fullname) => {
   return result;
 };
 
+const displayedNameContact = async (id, displayedName, userId) => {
+  const user = new ContactsRepo();
+  const result = await user.updateDisplayedName(id, displayedName, userId);
+  return result;
+};
+
 module.exports = {
   getAllContacts,
   addContact,
   deleteContact,
   findContactsUsername,
   findContactsEmail,
+  findContactEmail,
   findContactsFullname,
+  findDisplayedName,
+  displayedNameContact,
 };

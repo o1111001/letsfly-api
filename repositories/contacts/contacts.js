@@ -1,15 +1,16 @@
 const { db } = global;
 
 class Contacts {
-  constructor(userId, contact) {
+  constructor(userId, contact, displayedName) {
     this.userId = userId;
     this.contact = contact;
+    this.displayedName = displayedName;
   }
 
   getAll() {
     const { userId } = this;
     return new Promise((resolve, reject) => {
-      db.select('id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
+      db.select('users.id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar', 'isOnline', 'lastOnline', 'displayedName')
         .from('users')
         .leftOuterJoin('contacts', 'contacts.contact', 'users.id')
         .where({
@@ -21,12 +22,13 @@ class Contacts {
   }
 
   add() {
-    const { userId, contact } = this;
+    const { userId, contact, displayedName } = this;
     return new Promise((resolve, reject) => {
       db('contacts')
         .insert({
           userId,
           contact,
+          displayedName,
         })
         .then(res => resolve(res))
         .catch(err => reject(err));
@@ -50,21 +52,48 @@ class Contacts {
     });
   }
   findUsername(id, username) {
-    const usernameRegex = `${username}%`.toLowerCase();
+    const usernameRegex = username ? `${username}%`.toLowerCase() : '%';
     return new Promise((resolve, reject) => {
-      db.select('id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
+      db.select('users.id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar', 'isOnline', 'lastOnline', 'displayedName')
+        // .distinct('users.id')
         .from('users')
-        .whereRaw('id != ? and username like ?', [id, usernameRegex])
+        .join('contacts', 'contacts.contact', 'users.id')
+        .whereRaw('users.id != ? and username like ?', [id, usernameRegex])
+        .whereRaw('"displayedName" is not null', [])
         .then(result => resolve(result))
         .catch(err => reject(err));
     });
   }
+
+  findDisplayedName(id, displayedName) {
+    const displayedNameRegex = displayedName ? `${displayedName}%`.toLowerCase() : '%';
+    return new Promise((resolve, reject) => {
+      db.select('users.id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar', 'isOnline', 'lastOnline', 'displayedName')
+        // .distinct('users.id')
+        .from('users')
+        .join('contacts', 'contacts.contact', 'users.id')
+        .whereRaw('users.id != ? and "displayedName" like ?', [id, displayedNameRegex])
+        .then(result => resolve(result))
+        .catch(err => reject(err));
+    });
+  }
+
   findEmail(id, email) {
     const emailRegex = `${email}%`.toLowerCase();
     return new Promise((resolve, reject) => {
       db.select('id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
         .from('users')
         .whereRaw('id != ? and email like ?', [id, emailRegex])
+        .then(result => resolve(result))
+        .catch(err => reject(err));
+    });
+  }
+
+  findFullCompareEmail(id, email) {
+    return new Promise((resolve, reject) => {
+      db.select('id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar')
+        .from('users')
+        .whereRaw('id != ? and email = ?', [id, email])
         .then(result => resolve(result))
         .catch(err => reject(err));
     });
@@ -80,6 +109,23 @@ class Contacts {
         .catch(err => reject(err));
     });
   }
+
+
+  updateDisplayedName(id, displayedName, userId) {
+    return new Promise((resolve, reject) => {
+      db('contacts')
+        .where({
+          userId: id,
+          contact: userId,
+        })
+        .update({
+          displayedName,
+        })
+        .then(resolve())
+        .catch(err => reject(err));
+    });
+  }
+
 }
 
 module.exports = Contacts;
