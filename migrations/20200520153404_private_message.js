@@ -5,8 +5,6 @@ exports.up = knex => knex.schema.createTable('private_messages', t => {
   t.string('text', 1000);
   t.integer('attachmentId');
   t.dateTime('createdAt').defaultTo(knex.fn.now(6));
-  t.foreign('chatId').references('contacts.id');
-//   t.foreign('attachmentId').references('attachments.id');
   t.foreign('senderId').references('users.id');
 });
 
