@@ -17,7 +17,7 @@ const {
 
 router.get('/:main/:folder/:filename',
   checkFolder,
-  authorized,
+  // authorized,
   (req, res) => getFile(req, res),
 );
 

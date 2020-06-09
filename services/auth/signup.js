@@ -5,8 +5,10 @@ const generateCode = require('../../helpers/random');
 
 const signUp = async email => {
   const newUser = new SignUpRepo(email);
-  await newUser.checkExists();
-  await newUser.create();
+  const userExists = await newUser.checkExists();
+  if (!userExists || !userExists[0]) {
+    await newUser.create();
+  }
   const code = generateCode();
   const hash = await Hash.generate(code);
   await newUser.addCode(hash);

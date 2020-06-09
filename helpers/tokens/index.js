@@ -46,6 +46,17 @@ class Tokens {
       throw 'You need to login';
     }
   }
+
+  static async verifySocket(socket) {
+    if (socket.handshake.query && socket.handshake.query.token) {
+      const { token } = socket.handshake.query;
+      const { id } = await jwt.verify(token, JWT_SECRET);
+      return { id, token };
+    } else {
+      throw 'You need to login';
+    }
+
+  }
 }
 
 module.exports = Tokens;

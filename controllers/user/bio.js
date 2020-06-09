@@ -1,12 +1,17 @@
-const { bio: {
-  getBio: getBioService,
-  updateUsername: updateUsernameService,
-  updatePhoneNumber: updatePhoneNumberService,
-  updateFirstName: updateFirstNameService,
-  updateLastName: updateLastNameService,
-  updateAbout: updateAboutService,
-  updateAvatar: updateAvatarService,
-} } = require('../../services/user');
+const {
+  bio: {
+    getBio: getBioService,
+    updateUsername: updateUsernameService,
+    updatePhoneNumber: updatePhoneNumberService,
+    updateFirstName: updateFirstNameService,
+    updateLastName: updateLastNameService,
+    updateAbout: updateAboutService,
+    updateAvatar: updateAvatarService,
+  },
+  user: {
+    checkBan: checkBanService,
+  },
+} = require('../../services/user');
 
 const { sendError } = require('../../helpers/responses');
 
@@ -20,12 +25,18 @@ const response = bio => ({
 const getBio = async (req, res) => {
   try {
     let { id } = req.params;
-    if (id === 'me') {
-      id = req.locals.id;
-    }
     const me = req.locals.id;
+    let isBanned = false;
+    let inBan = false;
+    if (id === 'me') {
+      id = me;
+    } else {
+      const data = await checkBanService(me, id);
+      isBanned = data.isBanned;
+      inBan = data.inBan;
+    }
     const bio = await getBioService(id, me);
-    return res.send(response(bio));
+    return res.send(response({ ...bio, isBanned, inBan }));
 
   } catch (error) {
     return sendError(res, error);

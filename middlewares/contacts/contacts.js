@@ -21,6 +21,10 @@ const addContactSchema = {
       'type': 'number',
       'required': true,
     },
+    'name': {
+      'type': 'string',
+      'required': true,
+    },
   },
 };
 const deleteContactSchema = {

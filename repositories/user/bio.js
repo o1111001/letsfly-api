@@ -7,7 +7,35 @@ class Bio {
   get(me) {
     const { id } = this;
     return new Promise((resolve, reject) => {
-      db.raw(`SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", (select "c"."userId"::boolean from contacts c where "c"."userId" = ? and "c"."contact" = ?) as "contact" FROM users u WHERE "u"."id" = ?`, [me, id, id])
+      db.raw(`SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline", (select "c"."userId"::boolean from contacts c where "c"."userId" = ? and "c"."contact" = ?) as "contact" FROM users u WHERE "u"."id" = ?`, [me, id, id])
+        .then(result => {
+          if (result.rows.length) return resolve(result.rows[0]);
+          return reject('User does not exist');
+        })
+        .catch(err => reject(err));
+
+    });
+  }
+
+  getUser(me) {
+    const { id } = this;
+    return new Promise((resolve, reject) => {
+      db.raw(`SELECT 
+      "u"."id", 
+      "u"."username", 
+      "u"."firstName", 
+      "u"."lastName", 
+      "u"."email", 
+      "u"."phone", 
+      "u"."about", 
+      "u"."avatar", 
+      "u"."isOnline", 
+      "u"."lastOnline",
+      "c"."displayedName"
+      FROM users u 
+      inner join "contacts" "c" on "c"."contact" = "u"."id"
+      WHERE "u"."id" = ? and "c"."userId" = ?`,
+      [id, me])
         .then(result => {
           if (result.rows.length) return resolve(result.rows[0]);
           return reject('User does not exist');

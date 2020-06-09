@@ -15,6 +15,10 @@ const {
     updateAbout,
     updateAvatar,
   },
+  user: {
+    banUser,
+    unBanUser,
+  },
 } = require('../../controllers');
 
 const {
@@ -72,6 +76,16 @@ router.put('/bio/avatar',
   authorized,
   upload('avatars').single('avatar'),
   (req, res) => updateAvatar(req, res),
+);
+
+router.put('/ban',
+  authorized,
+  (req, res) => banUser(req, res),
+);
+
+router.delete('/ban',
+  authorized,
+  (req, res) => unBanUser(req, res),
 );
 
 module.exports = router;

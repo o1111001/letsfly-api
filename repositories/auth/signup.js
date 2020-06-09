@@ -9,10 +9,7 @@ class SignUp {
     return new Promise((resolve, reject) => {
       db('users')
         .where({ email })
-        .then(result => {
-          if (result.length) return reject('Email is already in use');
-          return resolve();
-        })
+        .then(result => resolve(result))
         .catch(err => reject(err));
     });
   }
