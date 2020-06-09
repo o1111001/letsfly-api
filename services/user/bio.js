@@ -1,8 +1,16 @@
 const { bio: BioRepo } = require('../../repositories');
 
-const getBio = async id => {
+const getBio = async (id, me) => {
   const user = new BioRepo(id);
-  const bio = await user.get(id);
+  let bio;
+  if (id === me) {
+    bio = await user.get(me);
+  } else {
+    bio = await user.get(me);
+    if (bio.contact) {
+      bio.displayedName = (await user.getUser(me)).displayedName;
+    }
+  }
   return bio;
 };
 

@@ -12,6 +12,10 @@ const {
     deleteContact,
     findContacts,
     findContactsFullname,
+    findContactsEmail,
+    findContactEmail,
+    findDisplayedName,
+    displayedNameContact,
   },
 } = require('../../controllers');
 
@@ -35,6 +39,24 @@ router.get('/find/username/:username',
   (req, res) => findContacts(req, res),
 );
 
+router.get('/find/displayedName/:displayedName',
+  // validateGetContactUsername,
+  authorized,
+  (req, res) => findDisplayedName(req, res),
+);
+
+router.get('/find/email/:email',
+  // validateGetContactFu,
+  authorized,
+  (req, res) => findContactsEmail(req, res),
+);
+
+router.get('/find/email/full_compare/:email',
+  // validateGetContactFu,
+  authorized,
+  (req, res) => findContactEmail(req, res),
+);
+
 router.get('/find/fullname/:fullname',
   validateGetContactFullname,
   authorized,
@@ -51,6 +73,12 @@ router.delete('/',
   validateDeleteContact,
   authorized,
   (req, res) => deleteContact(req, res),
+);
+
+router.put('/displayedName',
+  // validateDeleteContact,
+  authorized,
+  (req, res) => displayedNameContact(req, res),
 );
 
 module.exports = router;

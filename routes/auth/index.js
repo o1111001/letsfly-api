@@ -9,6 +9,7 @@ const {
   signUp,
   login,
   sendCode,
+  verify,
 } = require('../../controllers');
 
 const {
@@ -38,7 +39,7 @@ router.post('/login/code',
 
 router.get('/verify',
   authorized,
-  (req, res) => res.send('Authorized'),
+  (req, res) => verify(req, res),
 );
 
 module.exports = router;
