@@ -49,5 +49,7 @@ app.use('/api/v1/messages', messagesRoutes);
 
 app.use('/files', filesRoutes);
 
+app.get(/.*/, (req, res) => res.sendFile(__dirname + '/build/index.html'));
+
 server.listen(PORT,
   () => console.log(`Server listening on ${PORT} port`));
