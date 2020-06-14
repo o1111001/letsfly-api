@@ -5,6 +5,7 @@ const {
   readMessages: readMessagesService,
   getChats: getChatsService,
   getFiles: getFilesService,
+  getMessagesChatByUserId: getMessagesChatByUserIdService,
 } = require('../../services/private_messages');
 
 const {
@@ -56,6 +57,18 @@ const getChatByUserId = async (req, res) => {
     const { id: userId } = req.locals;
 
     const list = await getChatByUserIdService(userId, id);
+    const { isBanned, inBan } = await checkBanService(userId, id);
+    return res.send(response(list, isBanned, inBan));
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+const getMessagesChatByUserId = async (req, res) => {
+  try {
+    const { id, messageId } = req.params;
+    const { id: userId } = req.locals;
+    const list = await getMessagesChatByUserIdService(userId, id, messageId);
     const { isBanned, inBan } = await checkBanService(userId, id);
     return res.send(response(list, isBanned, inBan));
   } catch (error) {
@@ -115,5 +128,6 @@ module.exports = {
   readMessages,
   getChats,
   getFiles,
+  getMessagesChatByUserId,
 };
 
