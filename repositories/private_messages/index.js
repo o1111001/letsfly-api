@@ -168,11 +168,31 @@ class PrivateMessage {
           user1: receiverId,
           user2: senderId,
         })
-        .orderBy('createdAt', 'asc')
+        .orderBy('createdAt', 'desc')
+        .limit(30)
         .then(result => resolve(result))
         .catch(err => reject(err));
     });
   }
+
+  getMessagesChatByUserId(id) {
+    const { senderId, receiverId } = this;
+    return new Promise((resolve, reject) => {
+      db('private_chats')
+        .join('private_messages', 'private_messages.chatId', 'private_chats.id')
+        .whereRaw(`(
+          ("user1" = ? and "user2" = ? )
+          or ("user1" = ? and "user2" = ?)
+          )
+          and private_messages."id" < ? `,
+        [senderId, receiverId, receiverId, senderId, id])
+        .orderBy('createdAt', 'desc')
+        .limit(10)
+        .then(result => resolve(result))
+        .catch(err => reject(err));
+    });
+  }
+
 
   deleteMessageById(id) {
     return new Promise((resolve, reject) => {

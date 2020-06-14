@@ -47,6 +47,12 @@ const getChatByUserId = async (senderId, receiverId) => {
   return messagesList;
 };
 
+const getMessagesChatByUserId = async (senderId, receiverId, id) => {
+  const privateMessages = new PrivateMessagesRepo(senderId, receiverId);
+  const messagesList = privateMessages.getMessagesChatByUserId(id);
+  return messagesList;
+};
+
 const deleteMessageById = async (userId, messageId) => {
   const privateMessages = new PrivateMessagesRepo(userId);
   const message = await privateMessages.get(messageId);
@@ -97,4 +103,5 @@ module.exports = {
   readMessages,
   getChats,
   getFiles,
+  getMessagesChatByUserId,
 };

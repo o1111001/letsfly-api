@@ -15,6 +15,7 @@ const {
     readMessages,
     getChats,
     getFiles,
+    getMessagesChatByUserId,
   },
 } = require('../../controllers');
 
@@ -25,6 +26,11 @@ const {
 router.get('/private/users/:id',
   authorized,
   (req, res) => getChatByUserId(req, res),
+);
+
+router.get('/private/users/:id/:messageId',
+  authorized,
+  (req, res) => getMessagesChatByUserId(req, res),
 );
 
 router.post('/private/users',
