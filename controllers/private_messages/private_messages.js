@@ -6,6 +6,7 @@ const {
   getChats: getChatsService,
   getFiles: getFilesService,
   getMessagesChatByUserId: getMessagesChatByUserIdService,
+  getCountAttachments: getCountAttachmentsService,
 } = require('../../services/private_messages');
 
 const {
@@ -43,7 +44,9 @@ const create = async (req, res) => {
     } = req.body;
     const message = await createMessageService(id, receiverId, text, type, attachment);
     namespace.to(receiverId).emit('private_message', message);
-    delete message.displayedName;
+    delete message.user1.displayedName;
+    delete message.user2.displayedName;
+
     namespace.to(id).emit('private_message', message);
     return res.send(message);
   } catch (error) {
@@ -59,6 +62,19 @@ const getChatByUserId = async (req, res) => {
     const list = await getChatByUserIdService(userId, id);
     const { isBanned, inBan } = await checkBanService(userId, id);
     return res.send(response(list, isBanned, inBan));
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+const getCountAttachments = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { id: userId } = req.locals;
+
+    const list = await getCountAttachmentsService(userId, id);
+    // const { isBanned, inBan } = await checkBanService(userId, id);
+    return res.send(response(list));
   } catch (error) {
     return sendError(res, error);
   }
@@ -129,5 +145,6 @@ module.exports = {
   getChats,
   getFiles,
   getMessagesChatByUserId,
+  getCountAttachments,
 };
 
