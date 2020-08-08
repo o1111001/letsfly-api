@@ -13,7 +13,7 @@ class Hash {
       bcrypt.compare(password, hash, (err, match) => {
         if (err) reject(err);
         if (!match) return reject('Wrong code');
-        return resolve();
+        return resolve(true);
       });
     });
   }
