@@ -6,11 +6,11 @@ const getAllContacts = async id => {
   return contacts;
 };
 
-const addContact = async (userId, contactId, displayedName) => {
+const addContact = async (userId, contactId, displayedFirstName, displayedLastName) => {
   try {
     if (userId === contactId) throw 'You cannot add yourself to contacts';
-    const user = new ContactsRepo(userId, contactId, displayedName);
-    await user.add();
+    const user = new ContactsRepo(userId, contactId);
+    await user.add(displayedFirstName, displayedLastName);
     return;
   } catch (error) {
     if (error.code === '23505') {
@@ -56,9 +56,9 @@ const findContactsFullname = async (id, fullname) => {
   return result;
 };
 
-const displayedNameContact = async (id, displayedName, userId) => {
+const displayedNameContact = async (id, displayedFirstName, displayedLastName, userId) => {
   const user = new ContactsRepo();
-  const result = await user.updateDisplayedName(id, displayedName, userId);
+  const result = await user.updateDisplayedName(id, displayedFirstName, displayedLastName, userId);
   return result;
 };
 
