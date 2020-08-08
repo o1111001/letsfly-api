@@ -1,4 +1,5 @@
 const { user: UserRepo } = require('../../repositories');
+const { contacts: ContactsRepo } = require('../../repositories');
 
 const banUser = async (user, bannedUser) => {
   try {
@@ -38,9 +39,34 @@ const checkBan = async (user, bannedUser) => {
     throw 'Error';
   }
 };
+const findName = async (id, name) => {
+  const contact = new ContactsRepo();
+  const user = new UserRepo();
 
+  const contactResult = await contact.findDisplayedName(id, name);
+  const globalResult = await user.findGlobalName(id, name);
+  const response = {
+    contacts: contactResult,
+    global: globalResult,
+  };
+  return response;
+};
+const findUsername = async (id, name) => {
+  const contact = new ContactsRepo();
+  const user = new UserRepo();
+
+  const contactResult = await contact.findUsername(id, name);
+  const globalResult = await user.findGlobalUsername(id, name);
+  const response = {
+    contacts: contactResult,
+    global: globalResult,
+  };
+  return response;
+};
 module.exports = {
   banUser,
   unBanUser,
   checkBan,
+  findName,
+  findUsername,
 };
