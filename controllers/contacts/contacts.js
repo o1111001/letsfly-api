@@ -31,8 +31,8 @@ const getAllContacts = async (req, res) => {
 const addContact = async (req, res) => {
   try {
     const { id: userId } = req.locals;
-    const { id: contactId, name } = req.body;
-    await addContactService(userId, contactId, name);
+    const { id: contactId, displayedFirstName, displayedLastName } = req.body;
+    await addContactService(userId, contactId, displayedFirstName, displayedLastName);
     return res.send(response());
   } catch (error) {
     return sendError(res, error);
@@ -63,7 +63,7 @@ const findContacts = async (req, res) => {
 
 const findDisplayedName = async (req, res) => {
   try {
-    const { displayedName } = req.params;
+    const { displayedName } = req.query;
     const { id } = req.locals;
     const data = await findDisplayedNameService(id, displayedName);
     return res.send(response(data));
@@ -113,9 +113,9 @@ const findContactsFullname = async (req, res) => {
 
 const displayedNameContact = async (req, res) => {
   try {
-    const { displayedName, id: userId } = req.body;
+    const { displayedFirstName, displayedLastName, id: userId } = req.body;
     const { id } = req.locals;
-    const data = await displayedNameContactService(id, displayedName, userId);
+    const data = await displayedNameContactService(id, displayedFirstName, displayedLastName, userId);
     return res.send(response(data));
   } catch (error) {
     return sendError(res, error);

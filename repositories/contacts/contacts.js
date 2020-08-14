@@ -7,28 +7,44 @@ class Contacts {
     this.displayedName = displayedName;
   }
 
+  // getAllOld() {
+  //   const { userId } = this;
+  //   return new Promise((resolve, reject) => {
+  //     db.select('users.id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar', 'isOnline', 'lastOnline', `concat(displayedFirstName, ' ', displayedFirstName)`)
+  //       .from('users')
+  //       .leftOuterJoin('contacts', 'contacts.contact', 'users.id')
+  //       .where({
+  //         userId,
+  //       })
+  //       .then(result => resolve(result))
+  //       .catch(err => reject(err));
+  //   });
+  // }
+
   getAll() {
     const { userId } = this;
     return new Promise((resolve, reject) => {
-      db.select('users.id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar', 'isOnline', 'lastOnline', 'displayedName')
-        .from('users')
-        .leftOuterJoin('contacts', 'contacts.contact', 'users.id')
-        .where({
-          userId,
-        })
-        .then(result => resolve(result))
+      db.raw(
+        `SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline", concat(c."displayedFirstName", ' ', c."displayedLastName") as "displayedName"
+        FROM users u 
+        left join contacts c on c."contact" = u."id"
+        WHERE "c"."userId" = ?
+        order by u."isOnline" desc, u."lastOnline" desc`,
+        [userId])
+        .then(result => resolve(result.rows))
         .catch(err => reject(err));
     });
   }
 
-  add() {
-    const { userId, contact, displayedName } = this;
+  add(displayedFirstName, displayedLastName) {
+    const { userId, contact } = this;
     return new Promise((resolve, reject) => {
       db('contacts')
         .insert({
           userId,
           contact,
-          displayedName,
+          displayedFirstName,
+          displayedLastName,
         })
         .then(res => resolve(res))
         .catch(err => reject(err));
@@ -54,13 +70,14 @@ class Contacts {
   findUsername(id, username) {
     const usernameRegex = username ? `${username}%`.toLowerCase() : '%';
     return new Promise((resolve, reject) => {
-      db.select('users.id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar', 'isOnline', 'lastOnline', 'displayedName')
-        // .distinct('users.id')
-        .from('users')
-        .join('contacts', 'contacts.contact', 'users.id')
-        .whereRaw('users.id != ? and username like ?', [id, usernameRegex])
-        .whereRaw('"displayedName" is not null', [])
-        .then(result => resolve(result))
+      db.raw(
+        `SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline", concat(c."displayedFirstName", ' ', c."displayedLastName") as "displayedName"
+              FROM users u 
+              left join contacts c on c."contact" = u."id"
+              WHERE "c"."userId" = ? and u."username" like ? 
+              order by u."isOnline" desc, u."lastOnline" desc`,
+        [id, usernameRegex])
+        .then(result => resolve(result.rows))
         .catch(err => reject(err));
     });
   }
@@ -68,12 +85,14 @@ class Contacts {
   findDisplayedName(id, displayedName) {
     const displayedNameRegex = displayedName ? `${displayedName}%`.toLowerCase() : '%';
     return new Promise((resolve, reject) => {
-      db.select('users.id', 'username', 'firstName', 'lastName', 'email', 'phone', 'about', 'avatar', 'isOnline', 'lastOnline', 'displayedName')
-        // .distinct('users.id')
-        .from('users')
-        .join('contacts', 'contacts.contact', 'users.id')
-        .whereRaw('users.id != ? and "displayedName" like ?', [id, displayedNameRegex])
-        .then(result => resolve(result))
+      db.raw(
+        `SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline", concat(c."displayedFirstName", ' ', c."displayedLastName") as "displayedName"
+            FROM users u 
+            left join contacts c on c."contact" = u."id"
+            WHERE "c"."userId" = ? and lower(concat(c."displayedFirstName", ' ', c."displayedLastName")) like ? 
+            order by u."isOnline" desc, u."lastOnline" desc`,
+        [id, displayedNameRegex])
+        .then(result => resolve(result.rows))
         .catch(err => reject(err));
     });
   }
@@ -111,7 +130,7 @@ class Contacts {
   }
 
 
-  updateDisplayedName(id, displayedName, userId) {
+  updateDisplayedName(id, displayedFirstName, displayedLastName, userId) {
     return new Promise((resolve, reject) => {
       db('contacts')
         .where({
@@ -119,9 +138,10 @@ class Contacts {
           contact: userId,
         })
         .update({
-          displayedName,
+          displayedFirstName,
+          displayedLastName,
         })
-        .then(resolve())
+        .then(res => resolve(res))
         .catch(err => reject(err));
     });
   }

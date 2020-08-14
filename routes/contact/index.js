@@ -39,7 +39,7 @@ router.get('/find/username/:username',
   (req, res) => findContacts(req, res),
 );
 
-router.get('/find/displayedName/:displayedName',
+router.get('/find/displayedName',
   // validateGetContactUsername,
   authorized,
   (req, res) => findDisplayedName(req, res),

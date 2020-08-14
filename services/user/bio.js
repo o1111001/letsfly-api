@@ -7,11 +7,28 @@ const getBio = async (id, me) => {
     bio = await user.get(me);
   } else {
     bio = await user.get(me);
+    delete bio.balance;
+    delete bio.isAdmin;
+
     if (bio.contact) {
-      bio.displayedName = (await user.getUser(me)).displayedName;
+      const { displayedFirstName, displayedLastName } = await user.getUser(me);
+      bio.displayedFirstName = displayedFirstName;
+      bio.displayedLastName = displayedLastName;
     }
   }
   return bio;
+};
+
+const updateFullBio = async (id, { firstName, lastName, phone, username, about }) => {
+  const user = new BioRepo(id);
+  const errors = [];
+  const checkUsername = await user.checkUsername(username);
+  if (checkUsername.length) errors.push('username');
+  const checkPhone = await user.checkPhone(phone);
+  if (checkPhone.length) errors.push('phone');
+  if (errors.length) return errors;
+  await user.updateFullBio({ firstName, lastName, phone, username, about });
+  return errors;
 };
 
 const updateUsername = async (id, username) => {
@@ -72,4 +89,5 @@ module.exports = {
   updateLastName,
   updateAbout,
   updateAvatar,
+  updateFullBio,
 };

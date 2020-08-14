@@ -14,10 +14,13 @@ const {
     updateLastName,
     updateAbout,
     updateAvatar,
+    updateFullBio,
   },
   user: {
     banUser,
     unBanUser,
+    findName,
+    findUsername,
   },
 } = require('../../controllers');
 
@@ -39,6 +42,21 @@ router.get('/bio/:id',
   validateGetBio,
   authorized,
   (req, res) => getBio(req, res),
+);
+
+router.get('/find/name/:name',
+  authorized,
+  (req, res) => findName(req, res),
+);
+
+router.get('/find/username/:name',
+  authorized,
+  (req, res) => findUsername(req, res),
+);
+
+router.put('/bio/full',
+  authorized,
+  (req, res) => updateFullBio(req, res),
 );
 
 router.put('/bio/username',

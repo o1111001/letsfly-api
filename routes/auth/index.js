@@ -4,12 +4,15 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const isAdmin = require('../../policies/isAdmin');
 
 const {
   signUp,
   login,
+  adminLogin,
   sendCode,
   verify,
+  adminVerify,
 } = require('../../controllers');
 
 const {
@@ -40,6 +43,17 @@ router.post('/login/code',
 router.get('/verify',
   authorized,
   (req, res) => verify(req, res),
+);
+
+router.post('/admin/login',
+  authorized,
+  (req, res) => adminLogin(req, res),
+);
+
+router.get('/admin/verify',
+  authorized,
+  isAdmin,
+  (req, res) => adminVerify(req, res),
 );
 
 module.exports = router;
