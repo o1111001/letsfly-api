@@ -12,8 +12,8 @@ class Hash {
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, hash, (err, match) => {
         if (err) reject(err);
-        if (!match) return reject('Wrong code');
-        return resolve();
+        if (!match) return reject('Wrong credentials');
+        return resolve(true);
       });
     });
   }

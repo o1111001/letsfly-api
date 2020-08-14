@@ -32,20 +32,69 @@ class PrivateMessage {
   checkChat() {
     const { senderId, receiverId } = this;
     return new Promise((resolve, reject) => {
-      db('private_chats')
-        .where({
-          user1: senderId,
-          user2: receiverId,
-        })
-        .orWhere({
-          user1: receiverId,
-          user2: senderId,
-        })
-        .then(result => resolve(result[0]))
+      db.raw(`
+      select ch.id,
+      (select json_build_object(
+        'id', u1.id,
+        'username',  u1."username",
+        'firstName',  u1."firstName",
+        'lastName',  u1."lastName",
+        'email',  u1."email",
+        'phone',  u1."phone",
+        'about',  u1."about",
+        'avatar',  u1."avatar",
+        'isOnline',  u1."isOnline",
+        'lastOnline',  u1."lastOnline",
+        'displayedName', (select concat(c1."displayedFirstName", ' ', c1."displayedLastName") from contacts c1 where (c1."contact" = ? and c1."userId" = ?) )
+      ) as user1 from users u1 where id = ch.user1),
+      (select json_build_object(
+        'id', u2.id,
+        'username',  u2."username",
+        'firstName',  u2."firstName",
+        'lastName',  u2."lastName",
+        'email',  u2."email",
+        'phone',  u2."phone",
+        'about',  u2."about",
+        'avatar',  u2."avatar",
+        'isOnline',  u2."isOnline",
+        'lastOnline',  u2."lastOnline",
+        'displayedName', (select concat(c2."displayedFirstName", ' ', c2."displayedLastName") from contacts c2 where (c2."contact" = ? and c2."userId" = ?) )
+      ) as user2 from users u2 where id = ch.user2)
+      from private_chats ch
+      where (ch.user1 = ? and ch.user2 = ?) or (ch.user2 = ? and ch.user1 = ?)
+      `,
+      [senderId, receiverId, senderId, receiverId, senderId, receiverId, senderId, receiverId])
+        .then(result => resolve(result.rows[0]))
         .catch(err => reject(err));
     });
   }
-
+  /*
+(select json_build_object(
+          'id', u1.id,
+          'username',  u1."username",
+          'firstName',  u1."firstName",
+          'lastName',  u1."lastName",
+          'email',  u1."email",
+          'phone',  u1."phone",
+          'about',  u1."about",
+          'avatar',  u1."avatar",
+          'isOnline',  u1."isOnline",
+          'lastOnline',  u1."lastOnline",
+          'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u1.id) )
+        ) as user1 from users u1 where id = ch.user1),
+        (select json_build_object(
+          'id', u2.id,
+          'username',  u2."username",
+          'firstName',  u2."firstName",
+          'lastName',  u2."lastName",
+          'email',  u2."email",
+          'phone',  u2."phone",
+          'about',  u2."about",
+          'avatar',  u2."avatar",
+          'isOnline',  u2."isOnline",
+          'lastOnline',  u2."lastOnline",
+          'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u2.id) )
+*/
   getChat(id) {
     return new Promise((resolve, reject) => {
       db('private_chats')
@@ -155,22 +204,46 @@ class PrivateMessage {
     });
   }
 
+  getCountAttachments() {
+    const { senderId, receiverId } = this;
+    return new Promise((resolve, reject) => {
+      db.raw(
+        `with files as (
+          select pa."type" 
+          from private_chats ch
+          left join private_messages pm on pm."chatId" = ch.id
+          left join private_attachments pa on pa.id = pm."attachmentId"
+          where ((user1 = ? and user2 = ?) or (user1 = ? and user2 = ?)) and attachment is not null
+        ) select 
+        (select count(*)::int as "photo" from files where type = 'photo'),
+        (select count(*)::int as "video" from files where type = 'video'),
+        (select count(*)::int as "audio" from files where type = 'audio'),
+        (select count(*)::int as "audio_message" from files where type = 'audio_message'),
+        (select count(*)::int as "file" from files where type = 'another')
+        `,
+        [senderId, receiverId, receiverId, senderId],
+      )
+        .then(result => resolve(result.rows[0]))
+        .catch(err => reject(err));
+    });
+  }
+
   getChatByUserId() {
     const { senderId, receiverId } = this;
     return new Promise((resolve, reject) => {
-      db('private_chats')
-        .join('private_messages', 'private_messages.chatId', 'private_chats.id')
-        .where({
-          user1: senderId,
-          user2: receiverId,
-        })
-        .orWhere({
-          user1: receiverId,
-          user2: senderId,
-        })
-        .orderBy('createdAt', 'desc')
-        .limit(30)
-        .then(result => resolve(result))
+      db.raw(
+        `
+        with messages as (
+          select *
+          from "private_chats" 
+          inner join "private_messages" on "private_messages"."chatId" = "private_chats"."id" 
+          where ("user1" = ? and "user2" = ?) or ("user1" = ? and "user2" = ?) 
+          order by "createdAt" desc limit 30
+        ) select * from messages order by "createdAt" asc
+        `,
+        [senderId, receiverId, receiverId, senderId],
+      )
+        .then(result => resolve(result.rows))
         .catch(err => reject(err));
     });
   }
@@ -243,7 +316,8 @@ class PrivateMessage {
           'about',  u1."about",
           'avatar',  u1."avatar",
           'isOnline',  u1."isOnline",
-          'lastOnline',  u1."lastOnline"
+          'lastOnline',  u1."lastOnline",
+          'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u1.id) )
         ) as user1 from users u1 where id = ch.user1),
         (select json_build_object(
           'id', u2.id,
@@ -255,11 +329,14 @@ class PrivateMessage {
           'about',  u2."about",
           'avatar',  u2."avatar",
           'isOnline',  u2."isOnline",
-          'lastOnline',  u2."lastOnline"
+          'lastOnline',  u2."lastOnline",
+          'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u2.id) )
+
+
         ) as user2 from users u2 where id = ch.user2),
-        (select count(*) as "count"
+        (select count(*)::int as "count"
           from private_messages m 
-          where m."chatId" = pm."chatId" and "senderId" = ch.user2 and m."isRead" != true
+          where m."chatId" = pm."chatId" and "senderId" = pm."senderId" and m."isRead" != true
         )
         from private_messages pm
         inner join private_chats ch on ch.id = pm."chatId"
@@ -271,7 +348,7 @@ class PrivateMessage {
           group by ch.id
         )
         order by pm."createdAt" desc`,
-        [senderId, senderId],
+        [senderId, senderId, senderId, senderId],
       )
         .then(result => resolve(result.rows))
         .catch(err => reject(err));
@@ -279,30 +356,32 @@ class PrivateMessage {
   }
   getFiles(user1, user2, type) {
     return new Promise((resolve, reject) => {
-      db('private_attachments')
-        .whereIn(`id`,
-          db('private_messages')
-            .select('attachmentId')
-            .whereIn('chatId',
-              db('private_chats')
-                .select('id')
-                .where({
-                  user1,
-                  user2,
-                })
-                .orWhere({
-                  user2: user1,
-                  user1: user2,
-                }),
-            ),
-        )
-        .where({ type })
-        .then(result => resolve(result))
+      db.raw(
+        `select 
+          pa.id, 
+          pa.type, 
+          pa."createdAt", 
+          pa.path,
+          (select pm."senderId" from private_messages pm where pm."attachmentId" = pa.id)
+        from "private_attachments" pa
+        where "id" in (
+          select "attachmentId"
+          from "private_messages" 
+          where "chatId" in (
+            select "id" 
+            from "private_chats" 
+            where ("user1" = ? and "user2" = ?) or ("user2" = ? and "user1" = ?)
+          )
+        ) and "type" = ?
+        order by pa."createdAt" desc`,
+        [user1, user2, user1, user2, type],
+      )
+        .then(result => resolve(result.rows))
         .catch(err => reject(err));
     });
   }
 }
-
+// select * from "private_attachments" where "id" in (select "attachmentId", "senderId" from "private_messages" where "chatId" in (select "id" from "private_chats" where "user1" = $1 and "user2" = $2 or ("user2" = $3 and "user1" = $4))) and "type" = $5
 
 
 module.exports = PrivateMessage;

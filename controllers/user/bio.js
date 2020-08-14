@@ -7,6 +7,7 @@ const {
     updateLastName: updateLastNameService,
     updateAbout: updateAboutService,
     updateAvatar: updateAvatarService,
+    updateFullBio: updateFullBioService,
   },
   user: {
     checkBan: checkBanService,
@@ -38,6 +39,22 @@ const getBio = async (req, res) => {
     const bio = await getBioService(id, me);
     return res.send(response({ ...bio, isBanned, inBan }));
 
+  } catch (error) {
+    return sendError(res, error);
+  }
+};
+
+const fullBioResponse = data => ({
+  message: `Success`,
+  data,
+});
+
+const updateFullBio = async (req, res) => {
+  try {
+    const { id } = req.locals;
+    const { firstName, lastName, phone, username, about } = req.body;
+    const errors = await updateFullBioService(id, { firstName, lastName, phone, username, about });
+    return res.send(fullBioResponse(errors));
   } catch (error) {
     return sendError(res, error);
   }
@@ -117,4 +134,5 @@ module.exports = {
   updateLastName,
   updateAbout,
   updateAvatar,
+  updateFullBio,
 };

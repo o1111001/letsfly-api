@@ -16,6 +16,7 @@ const {
     getChats,
     getFiles,
     getMessagesChatByUserId,
+    getCountAttachments,
   },
 } = require('../../controllers');
 
@@ -26,6 +27,11 @@ const {
 router.get('/private/users/:id',
   authorized,
   (req, res) => getChatByUserId(req, res),
+);
+
+router.get('/private/attachments/count/:id',
+  authorized,
+  (req, res) => getCountAttachments(req, res),
 );
 
 router.get('/private/users/:id/:messageId',
