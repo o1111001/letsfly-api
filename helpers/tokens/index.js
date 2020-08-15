@@ -32,7 +32,6 @@ class Tokens {
       if (parts.length === 2) {
         const scheme = parts[0];
         const credentials = parts[1];
-        console.log(credentials);
         if (!credentials || credentials === 'null') throw 'You need to login';
         if (/^Token$/i.test(scheme)) {
           token = credentials;
