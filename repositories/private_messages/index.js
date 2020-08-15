@@ -60,7 +60,7 @@ class PrivateMessage {
         'lastOnline',  u2."lastOnline",
         'displayedName', (select concat(c2."displayedFirstName", ' ', c2."displayedLastName") from contacts c2 where (c2."contact" = ? and c2."userId" = ?) )
       ) as user2 from users u2 where id = ch.user2)
-      from private_chats ch
+      from chats ch
       where (ch.user1 = ? and ch.user2 = ?) or (ch.user2 = ? and ch.user1 = ?)
       `,
       [senderId, receiverId, senderId, receiverId, senderId, receiverId, senderId, receiverId])
@@ -97,7 +97,7 @@ class PrivateMessage {
 */
   getChat(id) {
     return new Promise((resolve, reject) => {
-      db('private_chats')
+      db('chats')
         .where({
           id,
         })
@@ -108,7 +108,7 @@ class PrivateMessage {
 
   deleteChat(id) {
     return new Promise((resolve, reject) => {
-      db('private_chats')
+      db('chats')
         .where({
           id,
         })
@@ -122,7 +122,7 @@ class PrivateMessage {
   createChat() {
     const { senderId, receiverId } = this;
     return new Promise((resolve, reject) => {
-      db('private_chats')
+      db('chats')
         .insert({
           user1: senderId,
           user2: receiverId,
@@ -136,7 +136,7 @@ class PrivateMessage {
   createAttachment(type) {
     const { attachment } = this;
     return new Promise((resolve, reject) => {
-      db('private_attachments')
+      db('attachments')
         .insert({
           path: attachment,
           type,
@@ -149,7 +149,7 @@ class PrivateMessage {
 
   get(id) {
     return new Promise((resolve, reject) => {
-      db('private_messages')
+      db('messages')
         .where({
           id,
         })
@@ -161,7 +161,7 @@ class PrivateMessage {
   create(chatId, attachmentId) {
     const { senderId, text, type, attachment } = this;
     return new Promise((resolve, reject) => {
-      db('private_messages')
+      db('messages')
         .insert({
           chatId,
           senderId,
@@ -179,7 +179,7 @@ class PrivateMessage {
   unReadMessagesInChat(chatId) {
     const { senderId } = this;
     return new Promise((resolve, reject) => {
-      db('private_messages')
+      db('messages')
         .count('*')
         .where({
           senderId,
@@ -194,7 +194,7 @@ class PrivateMessage {
   getMessageListPreview() {
     const { senderId } = this;
     return new Promise((resolve, reject) => {
-      db('private_messages')
+      db('messages')
 
         .then(result => {
           if (result.length) return resolve(result);
@@ -210,9 +210,9 @@ class PrivateMessage {
       db.raw(
         `with files as (
           select pa."type" 
-          from private_chats ch
-          left join private_messages pm on pm."chatId" = ch.id
-          left join private_attachments pa on pa.id = pm."attachmentId"
+          from chats ch
+          left join messages pm on pm."chatId" = ch.id
+          left join attachments pa on pa.id = pm."attachmentId"
           where ((user1 = ? and user2 = ?) or (user1 = ? and user2 = ?)) and attachment is not null
         ) select 
         (select count(*)::int as "photo" from files where type = 'photo'),
@@ -235,8 +235,8 @@ class PrivateMessage {
         `
         with messages as (
           select *
-          from "private_chats" 
-          inner join "private_messages" on "private_messages"."chatId" = "private_chats"."id" 
+          from "chats" 
+          inner join "messages" on "messages"."chatId" = "chats"."id" 
           where ("user1" = ? and "user2" = ?) or ("user1" = ? and "user2" = ?) 
           order by "createdAt" desc limit 30
         ) select * from messages order by "createdAt" asc
@@ -251,13 +251,13 @@ class PrivateMessage {
   getMessagesChatByUserId(id) {
     const { senderId, receiverId } = this;
     return new Promise((resolve, reject) => {
-      db('private_chats')
-        .join('private_messages', 'private_messages.chatId', 'private_chats.id')
+      db('chats')
+        .join('messages', 'messages.chatId', 'chats.id')
         .whereRaw(`(
           ("user1" = ? and "user2" = ? )
           or ("user1" = ? and "user2" = ?)
           )
-          and private_messages."id" < ? `,
+          and messages."id" < ? `,
         [senderId, receiverId, receiverId, senderId, id])
         .orderBy('createdAt', 'desc')
         .limit(10)
@@ -269,7 +269,7 @@ class PrivateMessage {
 
   deleteMessageById(id) {
     return new Promise((resolve, reject) => {
-      db('private_messages')
+      db('messages')
         .where({
           id,
         })
@@ -280,7 +280,7 @@ class PrivateMessage {
   }
   readMessages(chatId, userId) {
     return new Promise((resolve, reject) => {
-      db('private_messages')
+      db('messages')
         .where({
           chatId,
         })
@@ -335,15 +335,15 @@ class PrivateMessage {
 
         ) as user2 from users u2 where id = ch.user2),
         (select count(*)::int as "count"
-          from private_messages m 
+          from messages m 
           where m."chatId" = pm."chatId" and "senderId" = pm."senderId" and m."isRead" != true
         )
-        from private_messages pm
-        inner join private_chats ch on ch.id = pm."chatId"
+        from messages pm
+        inner join chats ch on ch.id = pm."chatId"
 
         where pm.id in (
-          select max(pm.id) as "unread" from private_chats ch
-          inner join private_messages pm on pm."chatId" = ch.id
+          select max(pm.id) as "unread" from chats ch
+          inner join messages pm on pm."chatId" = ch.id
           where ch.user1 = ? or ch.user2 = ? 
           group by ch.id
         )
@@ -362,14 +362,14 @@ class PrivateMessage {
           pa.type, 
           pa."createdAt", 
           pa.path,
-          (select pm."senderId" from private_messages pm where pm."attachmentId" = pa.id)
-        from "private_attachments" pa
+          (select pm."senderId" from messages pm where pm."attachmentId" = pa.id)
+        from "attachments" pa
         where "id" in (
           select "attachmentId"
-          from "private_messages" 
+          from "messages" 
           where "chatId" in (
             select "id" 
-            from "private_chats" 
+            from "chats" 
             where ("user1" = ? and "user2" = ?) or ("user2" = ? and "user1" = ?)
           )
         ) and "type" = ?
@@ -381,7 +381,7 @@ class PrivateMessage {
     });
   }
 }
-// select * from "private_attachments" where "id" in (select "attachmentId", "senderId" from "private_messages" where "chatId" in (select "id" from "private_chats" where "user1" = $1 and "user2" = $2 or ("user2" = $3 and "user1" = $4))) and "type" = $5
+// select * from "attachments" where "id" in (select "attachmentId", "senderId" from "messages" where "chatId" in (select "id" from "chats" where "user1" = $1 and "user2" = $2 or ("user2" = $3 and "user1" = $4))) and "type" = $5
 
 
 module.exports = PrivateMessage;

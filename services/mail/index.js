@@ -19,7 +19,6 @@ async function main(email, subject, text) {
     });
 
     const result = await transporter.sendMail(mailOptions);
-    console.log(result);
     return result;
   } else {
     const testAccount = await nodemailer.createTestAccount();
@@ -36,6 +35,8 @@ async function main(email, subject, text) {
 
     const info = await transporter.sendMail(mailOptions);
     console.log('Message sent: %s', info.messageId);
+    console.log('Preview Info: %s', info);
+
     console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
   }
 }
