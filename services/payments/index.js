@@ -14,13 +14,13 @@ const callback = async body => {
     id = user[0].id;
   }
   await payments.create(id, usdAmount, transactionStatus, orderReference, merchantSignature);
-  if (transactionStatus === 'Approved' && id !== -1) {
-    const balance = await payments.checkBalance(id);
-    if (!balance.length) {
-      await payments.createBalance(id);
-    }
-    await payments.add(id, usdAmount);
-  }
+  // if (transactionStatus === 'Approved' && id !== -1) {
+  // const balance = await payments.checkBalance(id);
+  // if (!balance.length) {
+  //   await payments.createBalance(id);
+  // }
+  // await payments.add(id, usdAmount);
+  // }
   return;
 };
 
