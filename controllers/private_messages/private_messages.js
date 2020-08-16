@@ -44,8 +44,8 @@ const create = async (req, res) => {
     } = req.body;
     const message = await createMessageService(id, receiverId, text, type, attachment);
     namespace.to(receiverId).emit('private_message', message);
-    delete message.user1.displayedName;
-    delete message.user2.displayedName;
+    message.user1.displayedName = undefined;
+    message.user2.displayedName = undefined;
 
     namespace.to(id).emit('private_message', message);
     return res.send(message);
