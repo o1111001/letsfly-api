@@ -38,11 +38,12 @@ const create = async (req, res) => {
       attachment = req.files.file[0].path;
     }
     const {
+      chatType,
       receiverId,
       text,
       type,
     } = req.body;
-    const message = await createMessageService(id, receiverId, text, type, attachment);
+    const message = await createMessageService(chatType, id, receiverId, text, type, attachment);
     namespace.to(receiverId).emit('private_message', message);
     message.user1.displayedName = undefined;
     message.user2.displayedName = undefined;

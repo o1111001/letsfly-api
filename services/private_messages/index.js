@@ -4,12 +4,13 @@ const UserRepo = require('../../repositories/user/bio');
 const { namespace } = require('../../namespaces');
 const path = require('path');
 const createMessage = async (senderId, receiverId, text, type, attachment) => {
-  const privateMessage = new PrivateMessagesRepo(senderId, receiverId, text, type, attachment);
+  const message = new PrivateMessagesRepo(senderId, receiverId, text, type, attachment);
   // await privateMessage.checkContact();
-  let chat = await privateMessage.checkChat();
+  let chat = await message.checkChat();
   if (!chat) {
-    chat = await privateMessage.createChat();
+    chat = await message.createChat();
   }
+
   let attachmentId = null;
   if (attachment) {
     let attachmentType;
@@ -19,17 +20,17 @@ const createMessage = async (senderId, receiverId, text, type, attachment) => {
     else if (ext === '.mp3') attachmentType = 'audio';
     else if (['.png', '.jpg', '.jpeg'].includes(ext)) attachmentType = 'photo';
     else attachmentType = 'another';
-    const { id } = await privateMessage.createAttachment(attachmentType);
+    const { id } = await message.createAttachment(attachmentType);
     attachmentId = id;
   }
 
   const { id: chatId, user1, user2 } = chat;
-  const message = await privateMessage.create(chatId, attachmentId);
+  const newMessage = await message.create(chatId, attachmentId);
   const user = new UserRepo(senderId);
   const { username, firstName, lastName, email } = await user.get(receiverId);
-  const { count } = await privateMessage.unReadMessagesInChat(chatId);
+  const { count } = await message.unReadMessagesInChat(chatId);
 
-  return { ...message, user1, user2, username, firstName, lastName, email, count };
+  return { ...newMessage, user1, user2, username, firstName, lastName, email, count };
 };
 
 const getMessageListPreview = async senderId => {
@@ -93,12 +94,12 @@ const getChats = async senderId => {
 
 const getFiles = async (id, userId, type) => {
   const privateMessages = new PrivateMessagesRepo();
-  const chats = await privateMessages.getFiles(id, userId, type);
-  return chats;
+  const files = await privateMessages.getFiles(id, userId, type);
+  return files;
 };
 
 module.exports = {
-  createMessage,
+  createMessage: require('./create'),
   getMessageListPreview,
   getChatByUserId,
   deleteMessageById,

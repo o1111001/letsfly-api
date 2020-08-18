@@ -1,43 +1,16 @@
 const { db } = global;
 
-class PrivateMessage {
-  constructor(senderId, receiverId, text, type, attachment) {
-    this.senderId = senderId;
-    this.receiverId = receiverId;
-    this.text = text;
-    this.type = type;
-    this.attachment = attachment;
-  }
+class Chat {
 
-  checkContact() {
-    const { senderId, receiverId } = this;
-    return new Promise((resolve, reject) => {
-      db('contacts')
-        .where({
-          userId: senderId,
-          contact: receiverId,
-        })
-        .orWhere({
-          userId: receiverId,
-          contact: senderId,
-        })
-        .then(result => {
-          if (result.length) return resolve(result[0]);
-          return reject('Please add user to contacts');
-        })
-        .catch(err => reject(err));
-    });
-  }
-
-  checkChat() {
-    const { senderId, receiverId } = this;
+  checkPersonalChat(fields) {
+    const { senderId, receiverId } = fields;
     return new Promise((resolve, reject) => {
       db.raw(`
       select 
         (
           select "chatId" from chats_users cu
           left join chats ch on ch.id = cu."chatId"
-          where cu."userId" in (?, ?) and ch.type = 'private'
+          where cu."userId" in (?, ?) and ch.type = 'personal'
           group by cu."chatId"
           having count(cu."userId") = 2
         ) as "chatId",
@@ -74,8 +47,56 @@ class PrivateMessage {
         .catch(err => reject(err));
     });
   }
-  /*
-(select json_build_object(
+
+  get(id) {
+    return new Promise((resolve, reject) => {
+      db('chats')
+        .where({
+          id,
+        })
+        .then(result => resolve(result[0]))
+        .catch(err => reject(err));
+    });
+  }
+
+  deleteChat(id) {
+    return new Promise((resolve, reject) => {
+      db('chats')
+        .where({
+          id,
+        })
+        .del()
+        .returning(['id'])
+        .then(result => resolve(result[0]))
+        .catch(err => reject(err));
+    });
+  }
+
+  create(fields) {
+    return new Promise((resolve, reject) => {
+      db('chats')
+        .insert(fields)
+        .returning(['id'])
+        .then(res => resolve(res[0]))
+        .catch(err => reject(err));
+    });
+  }
+
+  join(fields) {
+    return new Promise((resolve, reject) => {
+      db('chats_users')
+        .insert(fields)
+        .then(resolve())
+        .catch(err => reject(err));
+    });
+  }
+
+  getUsersFromPrivateChat(fields) {
+    const { senderId, receiverId } = fields;
+    return new Promise((resolve, reject) => {
+      db.raw(`
+      select
+        (select json_build_object(
           'id', u1.id,
           'username',  u1."username",
           'firstName',  u1."firstName",
@@ -86,8 +107,8 @@ class PrivateMessage {
           'avatar',  u1."avatar",
           'isOnline',  u1."isOnline",
           'lastOnline',  u1."lastOnline",
-          'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u1.id) )
-        ) as user1 from users u1 where id = ch.user1),
+          'displayedName', (select concat(c1."displayedFirstName", ' ', c1."displayedLastName") from contacts c1 where (c1."userId" = ? and c1."contact" = ?) )
+        ) from users u1 where id = ?) as user1,
         (select json_build_object(
           'id', u2.id,
           'username',  u2."username",
@@ -99,85 +120,12 @@ class PrivateMessage {
           'avatar',  u2."avatar",
           'isOnline',  u2."isOnline",
           'lastOnline',  u2."lastOnline",
-          'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u2.id) )
-*/
-  getChat(id) {
-    return new Promise((resolve, reject) => {
-      db('private_chats')
-        .where({
-          id,
-        })
-        .then(result => resolve(result[0]))
-        .catch(err => reject(err));
-    });
-  }
+          'displayedName', (select concat(c2."displayedFirstName", ' ', c2."displayedLastName") from contacts c2 where (c2."userId" = ? and c2."contact" = ?) )
+        ) from users u2 where id = ?) as user2
 
-  deleteChat(id) {
-    return new Promise((resolve, reject) => {
-      db('private_chats')
-        .where({
-          id,
-        })
-        .del()
-        .returning(['id'])
-        .then(result => resolve(result[0]))
-        .catch(err => reject(err));
-    });
-  }
-
-  createChat() {
-    const { senderId, receiverId } = this;
-    return new Promise((resolve, reject) => {
-      db('private_chats')
-        .insert({
-          user1: senderId,
-          user2: receiverId,
-        })
-        .returning(['id'])
-        .then(res => resolve(res[0]))
-        .catch(err => reject(err));
-    });
-  }
-
-  createAttachment(type) {
-    const { attachment } = this;
-    return new Promise((resolve, reject) => {
-      db('attachments')
-        .insert({
-          path: attachment,
-          type,
-        })
-        .returning(['id'])
-        .then(res => resolve(res[0]))
-        .catch(err => reject(err));
-    });
-  }
-
-  get(id) {
-    return new Promise((resolve, reject) => {
-      db('messages')
-        .where({
-          id,
-        })
-        .then(res => resolve(res[0]))
-        .catch(err => reject(err));
-    });
-  }
-
-  create(fields) {
-    const { chatId, senderId, text, type, attachment, attachmentId } = fields;
-    return new Promise((resolve, reject) => {
-      db('messages')
-        .insert({
-          chatId,
-          senderId,
-          text,
-          type,
-          attachment,
-          attachmentId,
-        })
-        .returning(['id', 'chatId', 'senderId', 'text', 'attachment', 'createdAt', 'type'])
-        .then(res => resolve(res[0]))
+      `,
+      [senderId, receiverId, receiverId, senderId, receiverId, senderId])
+        .then(result => resolve(result.rows[0]))
         .catch(err => reject(err));
     });
   }
@@ -390,4 +338,4 @@ class PrivateMessage {
 // select * from "attachments" where "id" in (select "attachmentId", "senderId" from "messages" where "chatId" in (select "id" from "private_chats" where "user1" = $1 and "user2" = $2 or ("user2" = $3 and "user1" = $4))) and "type" = $5
 
 
-module.exports = PrivateMessage;
+module.exports = new Chat();
