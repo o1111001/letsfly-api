@@ -15,7 +15,6 @@ const {
     readMessages,
     getChats,
     getFiles,
-    getMessagesChatByUserId,
     getCountAttachments,
   },
 } = require('../../controllers');
@@ -32,11 +31,6 @@ router.get('/private/users/:id',
 router.get('/private/attachments/count/:id',
   authorized,
   (req, res) => getCountAttachments(req, res),
-);
-
-router.get('/private/users/:id/:messageId',
-  authorized,
-  (req, res) => getMessagesChatByUserId(req, res),
 );
 
 router.post('/private/users',
@@ -61,11 +55,6 @@ router.delete('/private/:id',
   authorized,
   (req, res) => deleteMessageById(req, res),
 );
-
-// router.post('/private/files',
-//   upload.single('file'),
-//   (req, res) => postFile(req, res),
-// );
 
 router.get('/private/chats',
   authorized,

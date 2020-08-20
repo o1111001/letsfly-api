@@ -1,15 +1,12 @@
 const { db } = global;
 
 class Message {
-  createAttachment(type) {
-    const { attachment } = this;
+  get({ id }) {
     return new Promise((resolve, reject) => {
-      db('attachments')
-        .insert({
-          path: attachment,
-          type,
+      db('messages')
+        .where({
+          id,
         })
-        .returning(['id'])
         .then(res => resolve(res[0]))
         .catch(err => reject(err));
     });
@@ -32,6 +29,34 @@ class Message {
         .catch(err => reject(err));
     });
   }
+
+  deleteById({ id }) {
+    return new Promise((resolve, reject) => {
+      db('messages')
+        .update({
+          isDeleted: true,
+        })
+        .where({
+          id,
+        })
+        .then(result => resolve(result))
+        .catch(err => reject(err));
+    });
+  }
+
+  createAttachment({ type, attachment }) {
+    return new Promise((resolve, reject) => {
+      db('attachments')
+        .insert({
+          path: attachment,
+          type,
+        })
+        .returning(['id'])
+        .then(res => resolve(res[0].id))
+        .catch(err => reject(err));
+    });
+  }
 }
+
 
 module.exports = new Message();

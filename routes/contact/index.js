@@ -6,61 +6,27 @@ const router = express.Router();
 const authorized = require('../../policies/authorized');
 
 const {
-  contacts: {
-    getAllContacts,
-    addContact,
-    deleteContact,
-    findContacts,
-    findContactsFullname,
-    findContactsEmail,
-    findContactEmail,
-    findDisplayedName,
-    displayedNameContact,
-  },
-} = require('../../controllers');
+  getAllContacts,
+  addContact,
+  deleteContact,
+  findContacts,
+  findContactsFullname,
+  findContactsEmail,
+  findContactEmail,
+  findDisplayedName,
+  displayedNameContact,
+} = require('../../controllers/contacts');
 
 const {
-  contacts: {
-    validateAddContact,
-    validateDeleteContact,
-    validateGetContactUsername,
-    validateGetContactFullname,
-  },
+  validateAddContact,
+  validateDeleteContact,
+  validateGetContactUsername,
+  validateGetContactFullname,
 } = require('../../middlewares/contacts');
 
 router.get('/',
   authorized,
   (req, res) => getAllContacts(req, res),
-);
-
-router.get('/find/username/:username',
-  validateGetContactUsername,
-  authorized,
-  (req, res) => findContacts(req, res),
-);
-
-router.get('/find/displayedName',
-  // validateGetContactUsername,
-  authorized,
-  (req, res) => findDisplayedName(req, res),
-);
-
-router.get('/find/email/:email',
-  // validateGetContactFu,
-  authorized,
-  (req, res) => findContactsEmail(req, res),
-);
-
-router.get('/find/email/full_compare/:email',
-  // validateGetContactFu,
-  authorized,
-  (req, res) => findContactEmail(req, res),
-);
-
-router.get('/find/fullname/:fullname',
-  validateGetContactFullname,
-  authorized,
-  (req, res) => findContactsFullname(req, res),
 );
 
 router.post('/',
@@ -76,9 +42,36 @@ router.delete('/',
 );
 
 router.put('/displayedName',
-  // validateDeleteContact,
   authorized,
   (req, res) => displayedNameContact(req, res),
 );
+
+router.get('/find/username/:username',
+  validateGetContactUsername,
+  authorized,
+  (req, res) => findContacts(req, res),
+);
+
+router.get('/find/displayedName',
+  authorized,
+  (req, res) => findDisplayedName(req, res),
+);
+
+router.get('/find/email/:email',
+  authorized,
+  (req, res) => findContactsEmail(req, res),
+);
+
+router.get('/find/email/full_compare/:email',
+  authorized,
+  (req, res) => findContactEmail(req, res),
+);
+
+router.get('/find/fullname/:fullname',
+  validateGetContactFullname,
+  authorized,
+  (req, res) => findContactsFullname(req, res),
+);
+
 
 module.exports = router;

@@ -10,9 +10,7 @@ const {
 } = require('../../controllers');
 
 const {
-  files: {
-    checkFolder,
-  },
+  checkFolder,
 } = require('../../middlewares/files');
 
 router.get('/:main/:folder/:filename',

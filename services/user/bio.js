@@ -11,7 +11,7 @@ const getBio = async (id, me) => {
     bio.isAdmin = undefined;
 
     if (bio.contact) {
-      const { displayedFirstName, displayedLastName } = await user.getUser(me);
+      const { displayedFirstName, displayedLastName } = await user.getUser({ id, me });
       bio.displayedFirstName = displayedFirstName;
       bio.displayedLastName = displayedLastName;
     }

@@ -5,7 +5,6 @@ const {
   readMessages: readMessagesService,
   getChats: getChatsService,
   getFiles: getFilesService,
-  getMessagesChatByUserId: getMessagesChatByUserIdService,
   getCountAttachments: getCountAttachmentsService,
 } = require('../../services/private_messages');
 
@@ -44,11 +43,12 @@ const create = async (req, res) => {
       type,
     } = req.body;
     const message = await createMessageService(chatType, id, receiverId, text, type, attachment);
-    namespace.to(receiverId).emit('private_message', message);
-    message.user1.displayedName = undefined;
-    message.user2.displayedName = undefined;
+    namespace.to(receiverId).emit('private_message', { ...message, opponent: message.user2 });
+    console.log(receiverId, id);
+    // message.user1.displayedName = undefined;
+    // message.user2.displayedName = undefined;
 
-    namespace.to(id).emit('private_message', message);
+    namespace.to(id).emit('private_message', { ...message, opponent: message.user1 });
     return res.send(message);
   } catch (error) {
     return sendError(res, error);
@@ -81,23 +81,11 @@ const getCountAttachments = async (req, res) => {
   }
 };
 
-const getMessagesChatByUserId = async (req, res) => {
-  try {
-    const { id, messageId } = req.params;
-    const { id: userId } = req.locals;
-    const list = await getMessagesChatByUserIdService(userId, id, messageId);
-    const { isBanned, inBan } = await checkBanService(userId, id);
-    return res.send(response(list, isBanned, inBan));
-  } catch (error) {
-    return sendError(res, error);
-  }
-};
-
 const readMessages = async (req, res) => {
   try {
     const { id: userId } = req.locals;
-    const { id: messageId } = req.params;
-    const list = await readMessagesService(userId, messageId);
+    const { id: chatId } = req.params;
+    const list = await readMessagesService(userId, chatId);
     return res.send(response(list));
   } catch (error) {
     return sendError(res, error);
@@ -145,7 +133,6 @@ module.exports = {
   readMessages,
   getChats,
   getFiles,
-  getMessagesChatByUserId,
   getCountAttachments,
 };
 
