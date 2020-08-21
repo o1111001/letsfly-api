@@ -1,19 +1,5 @@
-'use strict';
+const admin = require('./admin');
 
-const express = require('express');
-const router = express.Router();
-
-const authorized = require('../../policies/authorized');
-const isAdmin = require('../../policies/isAdmin');
-
-const {
-  analytics,
-} = require('../../controllers');
-
-router.get('/',
-  authorized,
-  isAdmin,
-  (req, res) => analytics(req, res),
-);
-
-module.exports = router;
+module.exports = {
+  admin,
+};
