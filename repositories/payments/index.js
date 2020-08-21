@@ -14,16 +14,10 @@ class Payments {
     });
   }
 
-  create(userId, amount, status, orderReference, signature) {
+  create(details) {
     return new Promise((resolve, reject) => {
       db('payments')
-        .insert({
-          userId,
-          amount,
-          status,
-          orderReference,
-          signature,
-        })
+        .insert(details)
         .then(resolve())
         .catch(err => reject(err));
     });
@@ -64,21 +58,6 @@ class Payments {
         .catch(err => reject(err));
     });
   }
-
-  // getHistory(userId, balance) {
-  //   return new Promise((resolve, reject) => {
-  //     db('user_balance')
-  //       .increment({
-  //         balance,
-  //       })
-  //       .where({
-  //         userId,
-  //       })
-  //       .then(resolve())
-  //       .catch(err => reject(err));
-  //   });
-  // }
-
 }
 
 module.exports = Payments;
