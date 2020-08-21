@@ -3,11 +3,9 @@
 const express = require('express');
 const router = express.Router();
 
-const authorized = require('../../policies/authorized');
-
 const {
   getFile,
-} = require('../../controllers');
+} = require('../../controllers/files');
 
 const {
   checkFolder,
