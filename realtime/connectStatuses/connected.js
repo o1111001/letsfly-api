@@ -1,5 +1,5 @@
-const connectedService = require('../services/online_status/connected');
-const { namespace } = require('../namespaces');
+const connectedService = require('../../services/online_status/connected');
+const { namespace } = require('../../namespaces');
 
 module.exports = socket => {
   const { userId } = socket;
