@@ -11,7 +11,7 @@ class Bio {
         `SELECT "u"."id"::int, "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline", 
         (select "c"."userId"::boolean from contacts c where "c"."userId" = ? and "c"."contact" = ?) as "contact",
         (select "a"."userId"::boolean from admins a where "a"."userId" = ?) as "isAdmin",
-        (select "b"."balance"::int from user_balance b where "b"."userId" = ?) as "balance"
+        (select "b"."balance" from user_balance b where "b"."userId" = ?) as "balance"
         FROM users u WHERE "u"."id" = ?`,
         [me, id, me, me, id])
         .then(result => {
@@ -23,10 +23,12 @@ class Bio {
     });
   }
 
-  getUser(me) {
-    const { id } = this;
+  getUser({ id, me }) {
     return new Promise((resolve, reject) => {
-      db.raw(`SELECT 
+      db.raw(`
+      
+      
+      SELECT 
       "u"."id"::int, 
       "u"."username", 
       "u"."firstName", 
@@ -37,13 +39,13 @@ class Bio {
       "u"."avatar", 
       "u"."isOnline", 
       "u"."lastOnline",
-      "c"."displayedFirstName",
-      "c"."displayedLastName"
+      (select c."displayedFirstName" from contacts c where c.contact = u.id and c."userId" = ?),
+      (select c."displayedLastName" from contacts c where c.contact = u.id and c."userId" = ?)
 
-      FROM users u 
-      inner join "contacts" "c" on "c"."contact" = "u"."id"
-      WHERE "u"."id" = ? and "c"."userId" = ?`,
-      [id, me])
+      FROM users u
+      where u.id = ?
+      `,
+      [+me, +me, +id])
         .then(result => {
           if (result.rows.length) return resolve(result.rows[0]);
           return reject('User does not exist');

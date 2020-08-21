@@ -11,7 +11,7 @@ class Analytics {
         `select 
         (select count(*)::int as "users" from users),
         (select count(*)::int as "online" from users u where u."isOnline" = true),
-        (select count(*)::int as "messages" from private_messages),
+        (select count(*)::int as "messages" from messages),
         (select count(*)::int as "paymentsCount" from payments where status = 'Approved'),
         (select coalesce(sum(amount), 0)::int as "paymentsAmount" from payments where status = 'Approved'),
         (select 0 as "subcriptionCount"),

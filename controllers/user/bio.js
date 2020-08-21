@@ -9,7 +9,7 @@ const {
     updateAvatar: updateAvatarService,
     updateFullBio: updateFullBioService,
   },
-  user: {
+  ban: {
     checkBan: checkBanService,
   },
 } = require('../../services/user');
@@ -25,19 +25,23 @@ const response = bio => ({
 
 const getBio = async (req, res) => {
   try {
-    let { id } = req.params;
+
+    const user = {
+      id: req.params.id,
+      isBanned: false,
+      inBan: false,
+    };
+
     const me = req.locals.id;
-    let isBanned = false;
-    let inBan = false;
-    if (id === 'me') {
-      id = me;
+    if (user.id === 'me') {
+      user.id = me;
     } else {
-      const data = await checkBanService(me, id);
-      isBanned = data.isBanned;
-      inBan = data.inBan;
+      const data = await checkBanService(me, user.id);
+      user.isBanned = data.isBanned;
+      user.inBan = data.inBan;
     }
-    const bio = await getBioService(id, me);
-    return res.send(response({ ...bio, isBanned, inBan }));
+    const bio = await getBioService(user.id, me);
+    return res.send(response({ ...bio, isBanned: user.isBanned, inBan: user.inBan }));
 
   } catch (error) {
     return sendError(res, error);

@@ -20,11 +20,6 @@ const changeStatus = async (id, status) => {
     throw 'Insufficient funds';
   }
 
-  if (status === 'approved') {
-    const { userId, amount } = request;
-    await withdrawals.debit(userId, amount);
-  }
-
   const updated = await withdrawals.updateStatus(id, status);
 
   return updated;

@@ -7,11 +7,11 @@ const getBio = async (id, me) => {
     bio = await user.get(me);
   } else {
     bio = await user.get(me);
-    delete bio.balance;
-    delete bio.isAdmin;
+    bio.balance = undefined;
+    bio.isAdmin = undefined;
 
     if (bio.contact) {
-      const { displayedFirstName, displayedLastName } = await user.getUser(me);
+      const { displayedFirstName, displayedLastName } = await user.getUser({ id, me });
       bio.displayedFirstName = displayedFirstName;
       bio.displayedLastName = displayedLastName;
     }

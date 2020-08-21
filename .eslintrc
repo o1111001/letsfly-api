@@ -141,14 +141,6 @@
           "max": 10
         }
       ],
-      "new-cap": [
-        "error",
-        {
-          "newIsCap": true,
-          "capIsNew": true,
-          "properties": true
-        }
-      ],
       "new-parens": [
         "error"
       ],
