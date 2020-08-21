@@ -20,4 +20,4 @@ async function main(email, subject, text) {
   return result;
 }
 
-module.exports = main
+module.exports = main;
