@@ -10,9 +10,9 @@ It's a symbiosis of a **simple messenger** for communication between people and 
 ![ER diagram](assets/ER_diagram_DB.png?raw=true "ER diagram")
 
 ### Requirements:
-node 12.16.1
-postgres 11.5
-redis 5.0.9
+- node 12.16.1
+- postgres 11.5
+- redis 5.0.9
 
 ### Installation
 1. npm install
