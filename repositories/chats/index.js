@@ -180,7 +180,7 @@ class Chat {
             where cu."userId" in (?, ?) and ch.type = 'personal'
             group by cu."chatId"
             having count(cu."userId") = 2
-          )
+          ) and m."isDeleted" != true
           order by "createdAt" desc limit 30
         ) select * from messages_list order by "createdAt" asc
         `,
