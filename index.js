@@ -3,7 +3,6 @@
 const express = require('express');
 const app = express();
 
-// eslint-disable-next-line new-cap
 const server = require('http').Server(app);
 global.basedir = __dirname;
 require('./config/db');
@@ -23,16 +22,48 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 
-const authRoutes = require('./routes/auth');
-const usersRoutes = require('./routes/user');
-const contactsRoutes = require('./routes/contact');
-const messagesRoutes = require('./routes/private_messages');
-const paymentsRoutes = require('./routes/payments');
-const withdrawsRoutes = require('./routes/withdraws');
-const analyticsRoutes = require('./routes/analytics');
+const {
+  admin: analyticsAdminRoutes,
+} = require('./routes/analytics');
 
+const {
+  admin: authAdminRoutes,
+  user: authRoutes,
+} = require('./routes/auth');
+
+const {
+  contacts: contactsRoutes,
+  find: contactsFindRoutes,
+} = require('./routes/contacts');
+
+const {
+  chats: chatsRoutes,
+  personal: personalChatsRoutes,
+} = require('./routes/chats');
+
+const {
+  messages: messagesRoutes,
+} = require('./routes/messages');
+
+const {
+  bio: usersBioRoutes,
+  ban: usersBanRoutes,
+  find: usersFindRoutes,
+} = require('./routes/user');
+
+const {
+  admin: withdrawsAdminRoutes,
+  user: withdrawsRoutes,
+} = require('./routes/withdraws');
+
+// payment providers routes
+const paymentServicesProvider = require('./routes/payment_services_provider');
+
+// static files routes
 const filesRoutes = require('./routes/files');
-app.use((req, res, next) => { console.log(req.method, req.url); return next(); });
+const frontendBuild = require('path').join(__dirname, 'build');
+
+app.use((req, res, next) => { console.log(req.method, req.url); return next(); }); //need to implement logger
 app.use(cors());
 app.use(express.json());
 
@@ -45,22 +76,36 @@ app.use(bodyParser.urlencoded({
 
 app.use(bodyParser.json());
 
+// regular routes
 app.get('/api/health', (req, res) => res.send('Success'));
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', usersRoutes);
-app.use('/api/v1/contacts', contactsRoutes);
-app.use('/api/v1/messages', messagesRoutes);
-app.use('/api/v1/payments', paymentsRoutes);
-app.use('/api/v1/withdraw', withdrawsRoutes);
-app.use('/api/v1/analytics', analyticsRoutes);
 
+app.use('/api/v1/users', usersBioRoutes);
+app.use('/api/v1/users/find', usersFindRoutes);
+app.use('/api/v1/users/ban', usersBanRoutes);
+
+app.use('/api/v1/chats', chatsRoutes);
+app.use('/api/v1/chats/personal', personalChatsRoutes);
+
+app.use('/api/v1/contacts', contactsRoutes);
+app.use('/api/v1/contacts/find', contactsFindRoutes);
+app.use('/api/v1/messages', messagesRoutes);
+app.use('/api/v1/withdraw', withdrawsRoutes);
+
+// admin routes
+app.use('/api/v1/admin/auth', authAdminRoutes);
+app.use('/api/v1/admin/withdraw', withdrawsAdminRoutes);
+app.use('/api/v1/admin/analytics', analyticsAdminRoutes);
+
+// payment services routes
+app.use('/api/v1/payment_services_provider', paymentServicesProvider);
+
+// static files routes
 app.use('/files', filesRoutes);
 
-
-const root = require('path').join(__dirname, 'build');
-app.use(express.static(root));
+app.use(express.static(frontendBuild));
 app.get(/.*/, (req, res) => {
-  res.sendFile('index.html', { root });
+  res.sendFile('index.html', { root: frontendBuild });
 });
 
 server.listen(PORT,
