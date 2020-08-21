@@ -1,6 +1,8 @@
 const bio = require('./bio');
-const user = require('./user');
+const ban = require('./ban');
+const user = require('./find');
 module.exports = {
+  ban,
   bio,
   user,
 };
