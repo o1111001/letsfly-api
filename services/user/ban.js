@@ -1,7 +1,4 @@
 const { user: UserRepo } = require('../../repositories');
-const {
-  find: ContactsFind,
-} = require('../../repositories/contacts');
 
 const banUser = async (user, bannedUser) => {
   try {
