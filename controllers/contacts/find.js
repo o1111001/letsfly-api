@@ -7,83 +7,57 @@ const {
   displayedNameContact: displayedNameContactService,
 } = require('../../services/contacts/contacts');
 
-const { sendError } = require('../../helpers/responses');
-
 const response = data => ({
   message: `Success`,
   data,
 });
 
-const findContacts = async (req, res) => {
-  try {
-    const { username } = req.params;
-    const { id } = req.locals;
-    const data = await findContactsUsernameService(id, username);
-    return res.send(response(data));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const findContacts = async req => {
+  const { username } = req.params;
+  const { id } = req.locals;
+  const data = await findContactsUsernameService(id, username);
+  return response(data);
 };
 
-const findDisplayedName = async (req, res) => {
-  try {
-    const { displayedName } = req.query;
-    const { id } = req.locals;
-    const data = await findDisplayedNameService(id, displayedName);
-    return res.send(response(data));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const findDisplayedName = async req => {
+  const { displayedName } = req.query;
+  const { id } = req.locals;
+  const data = await findDisplayedNameService(id, displayedName);
+  return response(data);
 };
 
-const findContactsEmail = async (req, res) => {
-  try {
-    const { email } = req.params;
-    const { id } = req.locals;
+const findContactsEmail = async req => {
+  const { email } = req.params;
+  const { id } = req.locals;
 
-    const data = await findContactsEmailService(id, email);
-    return res.send(response(data));
+  const data = await findContactsEmailService(id, email);
+  return response(data);
 
-  } catch (error) {
-    return sendError(res, error);
-  }
 };
 
-const findContactEmail = async (req, res) => {
-  try {
-    const { email } = req.params;
-    const { id } = req.locals;
+const findContactEmail = async req => {
+  const { email } = req.params;
+  const { id } = req.locals;
 
-    const data = await findContactEmailService(id, email);
-    return res.send(response(data));
+  const data = await findContactEmailService(id, email);
+  return response(data);
 
-  } catch (error) {
-    return sendError(res, error);
-  }
 };
 
-const findContactsFullname = async (req, res) => {
-  try {
-    const { fullname } = req.params;
-    const { id } = req.locals;
+const findContactsFullname = async req => {
+  const { fullname } = req.params;
+  const { id } = req.locals;
 
-    const data = await findContactsFullnameService(id, fullname);
-    return res.send(response(data));
+  const data = await findContactsFullnameService(id, fullname);
+  return response(data);
 
-  } catch (error) {
-    return sendError(res, error);
-  }
 };
 
-const displayedNameContact = async (req, res) => {
-  try {
-    const { displayedFirstName, displayedLastName, id: userId } = req.body;
-    const { id } = req.locals;
-    const data = await displayedNameContactService(id, displayedFirstName, displayedLastName, userId);
-    return res.send(response(data));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const displayedNameContact = async req => {
+  const { displayedFirstName, displayedLastName, id: userId } = req.body;
+  const { id } = req.locals;
+  const data = await displayedNameContactService(id, displayedFirstName, displayedLastName, userId);
+  return response(data);
 };
 
 module.exports = {

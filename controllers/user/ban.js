@@ -3,8 +3,6 @@ const {
   unBanUser: unBanUserService,
 } = require('../../services/user/ban');
 
-const { sendError } = require('../../helpers/responses');
-
 const response = bio => ({
   message: `Success`,
   data: {
@@ -13,26 +11,18 @@ const response = bio => ({
 });
 
 
-const banUser = async (req, res) => {
-  try {
-    const { id: user } = req.locals;
-    const { id: bannedUser } = req.body;
-    const bio = await banUserService(user, bannedUser);
-    return res.send(response(bio));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const banUser = async req => {
+  const { id: user } = req.locals;
+  const { id: bannedUser } = req.body;
+  const bio = await banUserService(user, bannedUser);
+  return response(bio);
 };
 
-const unBanUser = async (req, res) => {
-  try {
-    const { id: user } = req.locals;
-    const { id: bannedUser } = req.body;
-    const bio = await unBanUserService(user, bannedUser);
-    return res.send(response(bio));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const unBanUser = async req => {
+  const { id: user } = req.locals;
+  const { id: bannedUser } = req.body;
+  const bio = await unBanUserService(user, bannedUser);
+  return response(bio);
 };
 
 module.exports = {

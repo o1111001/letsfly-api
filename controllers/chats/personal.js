@@ -10,6 +10,7 @@ const {
 } = require('../../services/user/ban');
 
 const { sendError } = require('../../helpers/responses');
+const { CustomError } = require('../../helpers/errors');
 
 
 const response = (list, isBanned, inBan) => ({
@@ -21,43 +22,30 @@ const response = (list, isBanned, inBan) => ({
   },
 });
 
-const getChatByUserId = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { id: userId } = req.locals;
-
-    const list = await getChatByUserIdService(userId, id);
-    const { isBanned, inBan } = await checkBanService(userId, id);
-    return res.send(response(list, isBanned, inBan));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const getChatByUserId = async req => {
+  const { id } = req.params;
+  const { id: userId } = req.locals;
+  const list = await getChatByUserIdService(userId, id);
+  const { isBanned, inBan } = await checkBanService(userId, id);
+  return response(list, isBanned, inBan);
 };
 
-const getFiles = async (req, res) => {
-  try {
-    const chatType = 'personal';
-    const { id } = req.locals;
-    const { id: userId, type } = req.params;
+const getFiles = async req => {
+  const chatType = 'personal';
+  const { id } = req.locals;
+  const { id: userId, type } = req.params;
 
-    const list = await getFilesService(chatType, type, { user1: id, user2: userId });
-    return res.send(response(list));
-  } catch (error) {
-    return sendError(res, error);
-  }
+  const list = await getFilesService(chatType, type, { user1: id, user2: userId });
+  return response(list);
 };
 
-const getCountAttachmentsFromChat = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { id: userId } = req.locals;
+const getCountAttachmentsFromChat = async req => {
+  const { id } = req.params;
+  const { id: userId } = req.locals;
 
-    const list = await getCountAttachmentsService(userId, id);
-    // const { isBanned, inBan } = await checkBanService(userId, id);
-    return res.send(response(list));
-  } catch (error) {
-    return sendError(res, error);
-  }
+  const list = await getCountAttachmentsService(userId, id);
+  // const { isBanned, inBan } = await checkBanService(userId, id);
+  return response(list);
 };
 
 module.exports = {
