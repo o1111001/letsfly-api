@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   ban: {
@@ -14,12 +15,12 @@ const {
 
 router.put('/',
   authorized,
-  (req, res) => banUser(req, res),
+  requestWrapper(banUser),
 );
 
 router.delete('/',
   authorized,
-  (req, res) => unBanUser(req, res),
+  requestWrapper(unBanUser),
 );
 
 module.exports = router;

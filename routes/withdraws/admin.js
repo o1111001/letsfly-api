@@ -5,6 +5,7 @@ const router = express.Router();
 
 const authorized = require('../../policies/authorized');
 const isAdmin = require('../../policies/isAdmin');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   changeWithdrawStatus,
@@ -14,13 +15,13 @@ const {
 router.get('/list',
   authorized,
   isAdmin,
-  (req, res) => withdrawsFullList(req, res),
+  requestWrapper(withdrawsFullList),
 );
 
 router.put('/status',
   authorized,
   isAdmin,
-  (req, res) => changeWithdrawStatus(req, res),
+  requestWrapper(changeWithdrawStatus),
 );
 
 module.exports = router;

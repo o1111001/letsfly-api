@@ -3,6 +3,8 @@
 const express = require('express');
 const router = express.Router();
 
+const { requestWrapper } = require('../../../helpers/errors');
+
 const authorized = require('../../../policies/authorized');
 
 const {
@@ -13,17 +15,17 @@ const {
 
 router.get('/users/:id',
   authorized,
-  (req, res) => getChatByUserId(req, res),
+  requestWrapper(getChatByUserId),
 );
 
 router.get('/attachments/count/:id',
   authorized,
-  (req, res) => getCountAttachmentsFromChat(req, res),
+  requestWrapper(getCountAttachmentsFromChat),
 );
 
 router.get('/files/:id/:type',
   authorized,
-  (req, res) => getFiles(req, res),
+  requestWrapper(getFiles),
 );
 
 module.exports = router;

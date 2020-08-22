@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   bio: {
@@ -35,49 +36,49 @@ const { upload } = require('../../services/files');
 router.get('/bio/:id',
   validateGetBio,
   authorized,
-  (req, res) => getBio(req, res),
+  requestWrapper(getBio),
 );
 
 router.put('/bio/full',
   authorized,
-  (req, res) => updateFullBio(req, res),
+  requestWrapper(updateFullBio),
 );
 
 router.put('/bio/username',
   validateUsername,
   authorized,
-  (req, res) => updateUsername(req, res),
+  requestWrapper(updateUsername),
 );
 
 router.put('/bio/phone_number',
   validatePhoneNumber,
   authorized,
-  (req, res) => updatePhoneNumber(req, res),
+  requestWrapper(updatePhoneNumber),
 );
 
 router.put('/bio/first_name',
   validateFirstName,
   authorized,
-  (req, res) => updateFirstName(req, res),
+  requestWrapper(updateFirstName),
 );
 
 router.put('/bio/last_name',
   validateLastName,
   authorized,
-  (req, res) => updateLastName(req, res),
+  requestWrapper(updateLastName),
 );
 
 router.put('/bio/about',
   validateAbout,
   authorized,
-  (req, res) => updateAbout(req, res),
+  requestWrapper(updateAbout),
 );
 
 router.put('/bio/avatar',
   validateAvatar,
   authorized,
   upload('avatars').single('avatar'),
-  (req, res) => updateAvatar(req, res),
+  requestWrapper(updateAvatar),
 );
 
 module.exports = router;

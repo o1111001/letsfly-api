@@ -6,6 +6,7 @@ const router = express.Router();
 const authorized = require('../../policies/authorized');
 
 const upload = require('../../services/files/private_messages/uploadFiles');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   create,
@@ -26,12 +27,12 @@ router.post('/',
   validateCreateMessage,
 
   authorized,
-  (req, res) => create(req, res),
+  requestWrapper(create),
 );
 
 router.delete('/',
   authorized,
-  (req, res) => deleteMessageById(req, res),
+  requestWrapper(deleteMessageById),
 );
 
 

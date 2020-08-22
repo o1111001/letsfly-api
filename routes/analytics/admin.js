@@ -5,6 +5,7 @@ const router = express.Router();
 
 const authorized = require('../../policies/authorized');
 const isAdmin = require('../../policies/isAdmin');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   analytics,
@@ -13,7 +14,7 @@ const {
 router.get('/',
   authorized,
   isAdmin,
-  (req, res) => analytics(req, res),
+  requestWrapper(analytics),
 );
 
 module.exports = router;

@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   signUp,
@@ -24,22 +25,22 @@ const {
 
 router.post('/signup',
   validateSignUp,
-  (req, res) => signUp(req, res),
+  requestWrapper(signUp),
 );
 
 router.post('/login',
   validateCode,
-  (req, res) => login(req, res),
+  requestWrapper(login),
 );
 
 router.post('/login/code',
   validateEmail,
-  (req, res) => sendCode(req, res),
+  requestWrapper(sendCode),
 );
 
 router.get('/verify',
   authorized,
-  (req, res) => verify(req, res),
+  requestWrapper(verify),
 );
 
 module.exports = router;

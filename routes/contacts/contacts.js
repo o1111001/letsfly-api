@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   getAllContacts,
@@ -19,24 +20,24 @@ const {
 
 router.get('/',
   authorized,
-  (req, res) => getAllContacts(req, res),
+  requestWrapper(getAllContacts),
 );
 
 router.post('/',
   validateAddContact,
   authorized,
-  (req, res) => addContact(req, res),
+  requestWrapper(addContact),
 );
 
 router.delete('/',
   validateDeleteContact,
   authorized,
-  (req, res) => deleteContact(req, res),
+  requestWrapper(deleteContact),
 );
 
 router.put('/displayedName',
   authorized,
-  (req, res) => displayedNameContact(req, res),
+  requestWrapper(displayedNameContact),
 );
 
 module.exports = router;

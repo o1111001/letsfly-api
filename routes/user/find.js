@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   find: {
@@ -14,12 +15,12 @@ const {
 
 router.get('/name/:name',
   authorized,
-  (req, res) => findName(req, res),
+  requestWrapper(findName),
 );
 
 router.get('/username/:name',
   authorized,
-  (req, res) => findUsername(req, res),
+  requestWrapper(findUsername),
 );
 
 module.exports = router;
