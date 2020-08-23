@@ -5,6 +5,7 @@ const router = express.Router();
 
 const authorized = require('../../policies/authorized');
 const isAdmin = require('../../policies/isAdmin');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   login,
@@ -13,13 +14,13 @@ const {
 
 router.post('/login',
   authorized,
-  (req, res) => login(req, res),
+  requestWrapper(login),
 );
 
 router.get('/verify',
   authorized,
   isAdmin,
-  (req, res) => verify(req, res),
+  requestWrapper(verify),
 );
 
 module.exports = router;

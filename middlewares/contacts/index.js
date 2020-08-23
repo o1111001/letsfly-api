@@ -3,16 +3,6 @@
 const { Validator } = require('jsonschema');
 const v = new Validator();
 
-const phoneNumberPattern = /^((\+[(]?[0-9]{1,3}[)]?))\s*[)]?[-\s\.]?[(]?[0-9]{1,3}[)]?([-\s\.]?[0-9]{3})([-\s\.]?[0-9]{3,4})$/;
-
-
-const validateGetBio = (req, res, next) => {
-  if (req.params.id && (req.params.id === 'me' || Number.isInteger(parseInt(req.params.id, 10)))) {
-    return next();
-  }
-  return res.status(422).send({ message: 'Wrong format' });
-};
-
 const addContactSchema = {
   'id': '/addContact',
   'type': 'object',

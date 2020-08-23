@@ -1,4 +1,5 @@
 const { db } = global;
+const { CustomError } = require('../../helpers/errors');
 
 class Contacts {
   constructor(userId, contact, displayedName) {
@@ -48,7 +49,7 @@ class Contacts {
         .del(['contact'])
         .then(res => {
           if (res.length) return resolve(res[0]);
-          return reject('Contact is not defined');
+          return reject(new CustomError('Contact is not defined', 422));
         })
         .catch(err => reject(err));
     });

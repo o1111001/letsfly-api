@@ -1,0 +1,8 @@
+module.exports = asyncRequestHandler => async (req, res, next) => {
+  try {
+    const result = await asyncRequestHandler(req);
+    return res.send(result);
+  } catch (error) {
+    return next(error);
+  }
+};

@@ -2,6 +2,7 @@
 
 const express = require('express');
 const router = express.Router();
+const { requestFileWrapper } = require('../../helpers/errors');
 
 const {
   getFile,
@@ -14,7 +15,7 @@ const {
 router.get('/:main/:folder/:filename',
   checkFolder,
   // authorized,
-  (req, res) => getFile(req, res),
+  requestFileWrapper(getFile),
 );
 
 module.exports = router;

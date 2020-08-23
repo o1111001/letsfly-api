@@ -1,7 +1,10 @@
-const { resolve } = require('path');
-require('dotenv').config({ path: resolve(__dirname, '../../.env') });
+const redis = require('socket.io-redis');
 
-module.exports = {
-  REDIS_HOST: process.env.REDIS_HOST,
-  REDIS_PORT: parseInt(process.env.REDIS_PORT, 10),
-};
+const {
+  REDIS_HOST,
+  REDIS_PORT,
+} = require('../env');
+
+module.exports = redis({ host: REDIS_HOST, port: REDIS_PORT });
+
+

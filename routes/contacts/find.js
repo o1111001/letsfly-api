@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   find: {
@@ -24,28 +25,28 @@ const {
 router.get('/username/:username',
   validateGetContactUsername,
   authorized,
-  (req, res) => findContacts(req, res),
+  requestWrapper(findContacts),
 );
 
 router.get('/displayedName',
   authorized,
-  (req, res) => findDisplayedName(req, res),
+  requestWrapper(findDisplayedName),
 );
 
 router.get('/email/:email',
   authorized,
-  (req, res) => findContactsEmail(req, res),
+  requestWrapper(findContactsEmail),
 );
 
 router.get('/email/full_compare/:email',
   authorized,
-  (req, res) => findContactEmail(req, res),
+  requestWrapper(findContactEmail),
 );
 
 router.get('/fullname/:fullname',
   validateGetContactFullname,
   authorized,
-  (req, res) => findContactsFullname(req, res),
+  requestWrapper(findContactsFullname),
 );
 
 

@@ -1,4 +1,5 @@
 const { db } = global;
+const { CustomError } = require('../../helpers/errors');
 
 class AdminLogin {
   constructor(id) {
@@ -13,7 +14,7 @@ class AdminLogin {
         })
         .then(result => {
           if (result.length) return resolve(result[0]);
-          return reject('Admin does not exist');
+          return reject(new CustomError('Admin does not exist', 403));
         })
         .catch(err => reject(err));
     });
