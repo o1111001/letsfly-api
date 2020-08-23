@@ -1,5 +1,5 @@
 const Admin = require('../repositories/admin');
-const { sendUnauthorized } = require('../helpers/responses');
+const { CustomError } = require('../helpers/errors');
 
 const isAdmin = async (req, res, next) => {
   try {
@@ -12,9 +12,9 @@ const isAdmin = async (req, res, next) => {
       req.locals.isAdmin = true;
       return next();
     }
-    return sendUnauthorized(res, 'Unauthorized');
+    throw new CustomError('Unauthorized', 403);
   } catch (error) {
-    return sendUnauthorized(res, error);
+    return next(error);
   }
 };
 

@@ -1,4 +1,5 @@
 const { db } = global;
+const { CustomError } = require('../../helpers/errors');
 
 class Login {
   constructor(email, hash) {
@@ -12,7 +13,7 @@ class Login {
         .where({ email })
         .then(result => {
           if (result.length) return resolve(result[0]);
-          return reject('Email does not exist');
+          return reject(new CustomError('Email does not exist', 404));
         })
         .catch(err => reject(err));
     });

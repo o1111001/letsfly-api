@@ -1,4 +1,5 @@
 const { bio: BioRepo } = require('../../repositories');
+const { CustomError } = require('../../helpers/errors');
 
 const getBio = async (id, me) => {
   const user = new BioRepo(id);
@@ -38,9 +39,9 @@ const updateUsername = async (id, username) => {
     return updatedUser[0];
   } catch (error) {
     if (error.code === '23505') {
-      throw 'Username is not available';
+      throw new CustomError('Username is not available', 409);
     }
-    throw error;
+    throw new CustomError('Internal server error', 500);
   }
 };
 
@@ -51,9 +52,9 @@ const updatePhoneNumber = async (id, phone) => {
     return updatedUser[0];
   } catch (error) {
     if (error.code === '23505') {
-      throw 'Phone number is not available';
+      throw new CustomError('Phone number is not available', 409);
     }
-    throw error;
+    throw new CustomError('Internal server error', 500);
   }
 };
 

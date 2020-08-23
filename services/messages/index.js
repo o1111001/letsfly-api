@@ -3,6 +3,7 @@ const Chat = require('../../repositories/chats');
 const UserRepo = require('../../repositories/user/bio');
 const User = new UserRepo();
 const { namespace } = require('../../namespaces');
+const { CustomError } = require('../../helpers/errors');
 
 
 
@@ -25,7 +26,7 @@ const readMessages = async (userId, chatId) => {
 
     const isMemberOfChat = await Chat.isMember({ userId, chatId });
     if (!isMemberOfChat) {
-      throw 'Permission denied';
+      throw new CustomError('Permission denied', 403);
     }
 
     const members = await Chat.getMembers({ userId, chatId });

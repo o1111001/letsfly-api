@@ -23,25 +23,21 @@ const getAttachment = files => {
   return null;
 };
 
-const create = async (req, res) => {
-  try {
-    const { id } = req.locals;
-    const attachment = getAttachment(req.files);
+const create = async req => {
+  const { id } = req.locals;
+  const attachment = getAttachment(req.files);
 
-    const {
-      chatType,
-      receiverId,
-      text,
-      type,
-    } = req.body;
+  const {
+    chatType,
+    receiverId,
+    text,
+    type,
+  } = req.body;
 
-    const message = await createMessageService(chatType, { text, type, attachment }, { senderId: id, receiverId });
-    broadcastToRoom(receiverId, 'message', { ...message, opponent: message.user2 });
-    broadcastToRoom(id, 'message', { ...message, opponent: message.user1 });
-    return res.send(response(message));
-  } catch (error) {
-    return sendError(res, error);
-  }
+  const message = await createMessageService(chatType, { text, type, attachment }, { senderId: id, receiverId });
+  broadcastToRoom(receiverId, 'message', { ...message, opponent: message.user2 });
+  broadcastToRoom(id, 'message', { ...message, opponent: message.user1 });
+  return response(message);
 };
 
 module.exports = create;

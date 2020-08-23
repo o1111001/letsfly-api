@@ -3,8 +3,6 @@ const {
   findUsername: findUsernameService,
 } = require('../../services/user/find');
 
-const { sendError } = require('../../helpers/responses');
-
 const response = bio => ({
   message: `Success`,
   data: {
@@ -13,26 +11,18 @@ const response = bio => ({
 });
 
 
-const findName = async (req, res) => {
-  try {
-    const { name } = req.params;
-    const { id } = req.locals;
-    const data = await findNameService(id, name);
-    return res.send(response(data));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const findName = async req => {
+  const { name } = req.params;
+  const { id } = req.locals;
+  const data = await findNameService(id, name);
+  return response(data);
 };
 
-const findUsername = async (req, res) => {
-  try {
-    const { name } = req.params;
-    const { id } = req.locals;
-    const data = await findUsernameService(id, name);
-    return res.send(response(data));
-  } catch (error) {
-    return sendError(res, error);
-  }
+const findUsername = async req => {
+  const { name } = req.params;
+  const { id } = req.locals;
+  const data = await findUsernameService(id, name);
+  return response(data);
 };
 
 module.exports = {

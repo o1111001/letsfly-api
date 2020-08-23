@@ -1,4 +1,5 @@
 const { contacts: ContactsRepo } = require('../../repositories');
+const { CustomError } = require('../../helpers/errors');
 
 const getAllContacts = async id => {
   const user = new ContactsRepo(id);
@@ -8,15 +9,15 @@ const getAllContacts = async id => {
 
 const addContact = async (userId, contactId, displayedFirstName, displayedLastName) => {
   try {
-    if (userId === contactId) throw 'You cannot add yourself to contacts';
+    if (userId === contactId) throw new CustomError('You cannot add yourself to contacts', 422);
     const user = new ContactsRepo(userId, contactId);
     await user.add(displayedFirstName, displayedLastName);
     return;
   } catch (error) {
     if (error.code === '23505') {
-      throw 'Already added';
+      throw new CustomError('Already added', 409);
     }
-    throw error;
+    throw new CustomError('Internal server error', 500);
   }
 };
 

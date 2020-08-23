@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   create,
@@ -12,12 +13,12 @@ const {
 
 router.post('/',
   authorized,
-  (req, res) => create(req, res),
+  requestWrapper(create),
 );
 
 router.get('/list',
   authorized,
-  (req, res) => withdrawsList(req, res),
+  requestWrapper(withdrawsList),
 );
 
 module.exports = router;

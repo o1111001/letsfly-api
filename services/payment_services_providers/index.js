@@ -1,7 +1,7 @@
 const PaymentsRepo = require('../../repositories/payments');
 
 const wpfCallback = async body => {
-  const { email, transactionStatus, amount, currency, orderReference, merchantSignature } = body;
+  const { email, transactionStatus, amount, orderReference, merchantSignature } = body;
   const usdAmount = amount;
 
   const payments = new PaymentsRepo();

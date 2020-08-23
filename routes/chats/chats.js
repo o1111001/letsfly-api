@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const { requestWrapper } = require('../../helpers/errors');
 
 const {
   getChats,
@@ -12,12 +13,12 @@ const {
 
 router.get('/',
   authorized,
-  (req, res) => getChats(req, res),
+  requestWrapper(getChats),
 );
 
 router.put('/read/:id',
   authorized,
-  (req, res) => readMessagesInChat(req, res),
+  requestWrapper(readMessagesInChat),
 );
 
 module.exports = router;

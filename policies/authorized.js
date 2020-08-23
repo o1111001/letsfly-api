@@ -1,7 +1,5 @@
 const Tokens = require('../helpers/tokens');
 const { verify: Verify } = require('../repositories');
-const { sendUnauthorized } = require('../helpers/responses');
-
 
 const authorized = async (req, res, next) => {
   try {
@@ -13,7 +11,7 @@ const authorized = async (req, res, next) => {
     };
     return next();
   } catch (error) {
-    return sendUnauthorized(res, error);
+    return next(error);
   }
 };
 
