@@ -4,6 +4,8 @@ const {
   EXPIRES,
 } = require('../../config/env');
 
+const { CustomError } = require('../errors');
+
 class Tokens {
   static generate(id) {
     const expiration = EXPIRES;
@@ -15,23 +17,24 @@ class Tokens {
 
   static async verify(req) {
     const token = req.cookies.token || '';
-    if (!token)  throw 'You need to login';
+    if (!token) throw new CustomError('Unauthorized', 403);
     const { id } = await jwt.verify(token, JWT_SECRET);
     return { id, token };
   }
 
   static async verifyStorage(req) {
-    if (!req.headers || !req.headers.authorization) throw 'You need to login';
+    if (!req.headers || !req.headers.authorization) throw new CustomError('Unauthorized', 403);
+
     const token = req.headers.authorization;
 
-    if (!token) throw 'You need to login';
+    if (!token) throw new CustomError('Unauthorized', 403);
     const parts = req.headers.authorization.split(' ');
 
-    if (parts.length !== 2) throw 'You need to login';
+    if (parts.length !== 2) throw new CustomError('Unauthorized', 403);
     const scheme = parts[0];
     const credentials = parts[1];
 
-    if (!credentials || credentials === 'null') throw 'You need to login';
+    if (!credentials || credentials === 'null') throw new CustomError('Unauthorized', 403);
     if (/^Token$/i.test(scheme)) {
       const { id } = await jwt.verify(credentials, JWT_SECRET);
       return { id, token: credentials };
@@ -43,7 +46,7 @@ class Tokens {
       const { token } = socket.handshake.query;
       const { id } = await jwt.verify(token, JWT_SECRET);
       return { id, token };
-    } throw 'You need to login';
+    } throw new CustomError('Unauthorized', 403);
   }
 }
 

@@ -1,4 +1,5 @@
 const { db } = global;
+const { CustomError } = require('../../helpers/errors');
 
 class Verify {
   constructor(id, token) {
@@ -15,7 +16,7 @@ class Verify {
         })
         .then(result => {
           if (result.length) return resolve(result[0]);
-          return reject('Wrong credentials');
+          return reject(new CustomError('Wrong credentials', 403));
         })
         .catch(err => reject(err));
     });

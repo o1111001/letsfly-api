@@ -1,12 +1,13 @@
 const { login: LoginRepo } = require('../../repositories');
 const Hash = require('../../helpers/hash');
 const Tokens = require('../../helpers/tokens');
+const { CustomError } = require('../../helpers/errors');
 
 const login = async (email, code) => {
   const User = new LoginRepo(email);
   const user = await User.getUser();
   const { id, hash } = user;
-  if (!hash) throw 'Code does not exist';
+  if (!hash) throw new CustomError('Code does not exist', 403);
   await Hash.compare(code, hash);
 
   const token = Tokens.generate(id);

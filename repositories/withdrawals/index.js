@@ -1,4 +1,5 @@
 const { db } = global;
+const { CustomError } = require('../../helpers/errors');
 
 class Withdraw {
   constructor(id) {
@@ -18,7 +19,7 @@ class Withdraw {
         .returning(['id'])
         .then(result => {
           if (result[0]) return resolve();
-          return reject('Error');
+          return reject(new CustomError('Error', 500));
         })
         .catch(err => reject(err));
     });

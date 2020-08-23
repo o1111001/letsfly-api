@@ -1,4 +1,5 @@
 const { db } = global;
+const { CustomError } = require('../../helpers/errors');
 
 class Bio {
   constructor(id) {
@@ -48,7 +49,7 @@ class Bio {
       [+me, +me, +id])
         .then(result => {
           if (result.rows.length) return resolve(result.rows[0]);
-          return reject('User does not exist');
+          return reject(new CustomError('User does not exist', 422));
         })
         .catch(err => reject(err));
 

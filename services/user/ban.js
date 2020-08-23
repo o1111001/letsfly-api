@@ -1,4 +1,5 @@
 const { user: UserRepo } = require('../../repositories');
+const { CustomError } = require('../../helpers/errors');
 
 const banUser = async (user, bannedUser) => {
   try {
@@ -7,36 +8,22 @@ const banUser = async (user, bannedUser) => {
     return;
   } catch (error) {
     if (error.code === '23505') {
-      throw 'Already banned';
+      throw new CustomError('Already banned', 409);
     }
-    throw error;
+    throw new CustomError('Internal server error', 500);
   }
 };
 
 const unBanUser = async (user, bannedUser) => {
-  try {
-    const ban = new UserRepo(user, bannedUser);
-    await ban.unBan();
-    return;
-  } catch (error) {
-    if (error.code === '23505') {
-      throw 'Already banned';
-    }
-    throw '';
-  }
+  const ban = new UserRepo(user, bannedUser);
+  await ban.unBan();
+  return;
 };
 
 const checkBan = async (user, bannedUser) => {
-  try {
-    const ban = new UserRepo(user, bannedUser);
-    const { isBanned, inBan } = await ban.checkBans();
-    return  { isBanned, inBan };
-  } catch (error) {
-    if (error.code === '23505') {
-      throw 'Already banned';
-    }
-    throw 'Error';
-  }
+  const ban = new UserRepo(user, bannedUser);
+  const { isBanned, inBan } = await ban.checkBans();
+  return  { isBanned, inBan };
 };
 
 module.exports = {
