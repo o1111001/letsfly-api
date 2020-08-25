@@ -2,16 +2,11 @@ const {
   getChatByUserId: getChatByUserIdService,
   getFiles: getFilesService,
   getCountAttachments: getCountAttachmentsService,
-
-} = require('../../services/messages');
+} = require('../../services/chats/personal');
 
 const {
   checkBan: checkBanService,
 } = require('../../services/user/ban');
-
-const { sendError } = require('../../helpers/responses');
-const { CustomError } = require('../../helpers/errors');
-
 
 const response = (list, isBanned, inBan) => ({
   message: `Success`,

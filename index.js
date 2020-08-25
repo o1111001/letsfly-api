@@ -25,6 +25,7 @@ const {
   contactsFindRoutes,
   chatsRoutes,
   personalChatsRoutes,
+  groupChatsRoutes,
   messagesRoutes,
   usersBioRoutes,
   usersBanRoutes,
@@ -59,6 +60,7 @@ app.use('/api/v1/users/ban', usersBanRoutes);
 
 app.use('/api/v1/chats', chatsRoutes);
 app.use('/api/v1/chats/personal', personalChatsRoutes);
+app.use('/api/v1/chats/group', groupChatsRoutes);
 
 app.use('/api/v1/contacts', contactsRoutes);
 app.use('/api/v1/contacts/find', contactsFindRoutes);
@@ -76,6 +78,8 @@ app.use('/api/v1/payment_services_provider', paymentServicesProvider);
 // static files routes
 app.use('/files', filesRoutes);
 
+
+// -- need to be moved to cdn
 const frontendBuild = join(__dirname, 'build');
 app.use(express.static(frontendBuild));
 app.get(/.*/, (req, res) => {

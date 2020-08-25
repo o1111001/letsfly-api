@@ -1,7 +1,5 @@
-const sendError = require('./error');
-const sendUnauthorized = require('./unauthorized');
+const responseCreator = require('./responseCreator');
 
 module.exports = {
-  sendError,
-  sendUnauthorized,
+  responseCreator,
 };

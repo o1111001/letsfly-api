@@ -1,7 +1,7 @@
 const {
   readMessages: readMessagesService,
   getChats: getChatsService,
-} = require('../../services/messages');
+} = require('../../services/chats/personal');
 
 const response = (list, isBanned, inBan) => ({
   message: `Success`,
