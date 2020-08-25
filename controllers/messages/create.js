@@ -6,9 +6,6 @@ const {
   createMessage: createMessageService,
 } = require('../../services/messages');
 
-const { sendError } = require('../../helpers/responses');
-
-
 const response = message => ({
   message: `Success`,
   data: {
