@@ -248,6 +248,20 @@ class Chat {
     });
   }
 
+  getAdmins(chatId) {
+    return db('chats_admins')
+      .where({
+        chatId,
+      });
+  }
+
+  getSubscribers(chatId) {
+    return db('chats_users')
+      .where({
+        chatId,
+      });
+  }
+
   isFreeLink({ id, link }) {
     return new Promise((resolve, reject) => {
       db('chats')

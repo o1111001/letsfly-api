@@ -5,8 +5,8 @@ const {
   changeChat: changeChatService,
   deleteChat: deleteChatService,
   createInvites: createInvitesService,
-  // getAdmins: getAdminsService,
-  // getSubscribers: getSubscribersService,
+  getAdmins: getAdminsService,
+  getSubscribers: getSubscribersService,
 
   isChatAdmin: isChatAdminService,
 } = require('../../../services/chats/group/admin');
@@ -73,25 +73,26 @@ const createInvites = async req => {
   return responseCreator();
 };
 
-// const getAdmins = async req => {
-//   const { id } = req.params;
-//   const { id: userId } = req.locals;
+const getAdmins = async req => {
+  const { id: chatId } = req.params;
+  const { id: userId } = req.locals;
+  const list = await getAdminsService(userId, chatId);
+  return responseCreator({ list });
+};
 
-//   return response(list);
-// };
-
-// const getSubscribers = async req => {
-//   const { id } = req.params;
-//   const { id: userId } = req.locals;
-
-//   return response(list);
-// };
+const getSubscribers = async req => {
+  const { id: chatId } = req.params;
+  const { id: userId } = req.locals;
+  await isChatAdminService(userId, chatId);
+  const list = await getSubscribersService(userId, chatId);
+  return responseCreator({ list });
+};
 
 module.exports = {
   createChat,
   changeChat,
   deleteChat,
   createInvites,
-  // getAdmins,
-  // getSubscribers,
+  getAdmins,
+  getSubscribers,
 };

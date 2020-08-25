@@ -29,15 +29,9 @@ const deleteChat = async (userId, chatId) => {
 
 const createInvites = (chatId, usersList) => Chat.createInvites(chatId, usersList);
 
-const getAdmins = async (senderId, receiverId) => {
-  const messagesList = await Chat.getPersonalChatByUserId({ senderId, receiverId });
-  return messagesList;
-};
+const getAdmins = chatId => Chat.getAdmins(chatId);
 
-const getSubscribers = async (senderId, receiverId) => {
-  const messagesList = await Chat.getPersonalChatByUserId({ senderId, receiverId });
-  return messagesList;
-};
+const getSubscribers = chatId => Chat.getSubscribers(chatId);
 
 const isChatAdmin = async (adminId, chatId) => {
   const isAdmin = await Chat.isAdmin({ adminId, chatId });
