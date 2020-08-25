@@ -7,7 +7,7 @@ const response = token => ({
   },
 });
 
-const adminLogin = async (req, res) => {
+const adminLogin = async req => {
   const { password } = req.body;
   const { id } = req.locals;
   const token = await service(id, password);
