@@ -1,8 +1,4 @@
 const {
-  broadcastToRoom,
-} = require('../../realtime/broadcast');
-
-const {
   createMessage: createMessageService,
 } = require('../../services/messages');
 
@@ -21,19 +17,18 @@ const getAttachment = files => {
 };
 
 const create = async req => {
-  const { id } = req.locals;
+  const { id: senderId } = req.locals;
   const attachment = getAttachment(req.files);
 
   const {
     chatType,
     receiverId,
+    chatId,
     text,
     type,
   } = req.body;
-
-  const message = await createMessageService(chatType, { text, type, attachment }, { senderId: id, receiverId });
-  broadcastToRoom(receiverId, 'message', { ...message, opponent: message.user2 });
-  broadcastToRoom(id, 'message', { ...message, opponent: message.user1 });
+  const details = chatType === 'personal' ? { senderId, receiverId } : { senderId, chatId };
+  const message = await createMessageService(chatType, { text, type, attachment }, details);
   return response(message);
 };
 

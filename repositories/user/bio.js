@@ -27,8 +27,6 @@ class Bio {
   getUser({ id, me }) {
     return new Promise((resolve, reject) => {
       db.raw(`
-      
-      
       SELECT 
       "u"."id"::int, 
       "u"."username", 
@@ -41,12 +39,13 @@ class Bio {
       "u"."isOnline", 
       "u"."lastOnline",
       (select c."displayedFirstName" from contacts c where c.contact = u.id and c."userId" = ?),
-      (select c."displayedLastName" from contacts c where c.contact = u.id and c."userId" = ?)
+      (select c."displayedLastName" from contacts c where c.contact = u.id and c."userId" = ?),
+      (select concat(c."displayedFirstName", ' ', c."displayedLastName") as "displayedName" from contacts c where (c."userId" = ? and c.contact = u.id) )
 
       FROM users u
       where u.id = ?
       `,
-      [+me, +me, +id])
+      [+me, +me, +me, +id])
         .then(result => {
           if (result.rows.length) return resolve(result.rows[0]);
           return reject(new CustomError('User does not exist', 422));

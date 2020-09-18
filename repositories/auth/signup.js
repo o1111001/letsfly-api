@@ -1,4 +1,5 @@
 const { db } = global;
+const promisify = require('../../helpers/promisify');
 
 class SignUp {
   constructor(email) {
@@ -14,18 +15,29 @@ class SignUp {
     });
   }
 
-  create() {
+  async create() {
     const { email } = this;
-    return new Promise((resolve, reject) => {
-      db('users')
+    const trx = await promisify(db.transaction.bind(db));
+    try {
+      const [userId] = await db('users')
         .insert({
           email,
           createdAt: db.fn.now(6),
           updatedAt: db.fn.now(6),
         })
-        .then(res => resolve(res))
-        .catch(err => reject(err));
-    });
+        .returning('id');
+
+      await db('user_balance')
+        .insert({
+          userId,
+        });
+
+      await trx.commit();
+      return userId;
+    } catch (e) {
+      console.log(e);
+      await trx.rollback('Internal server error');
+    }
   }
 
   addCode(hash) {

@@ -14,7 +14,9 @@ const createMessageSchema = {
     },
     'receiverId': {
       'type': 'string',
-      'required': true,
+    },
+    'chatId': {
+      'type': 'string',
     },
   },
 };

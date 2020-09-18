@@ -1,4 +1,5 @@
 const { db } = global;
+const promisify = require('../../helpers/promisify');
 
 class Payments {
   constructor(id) {
@@ -14,13 +15,27 @@ class Payments {
     });
   }
 
-  create(details) {
-    return new Promise((resolve, reject) => {
-      db('payments')
-        .insert(details)
-        .then(resolve())
-        .catch(err => reject(err));
-    });
+  async create(details) {
+    const trx = await promisify(db.transaction.bind(db));
+    try {
+      await db('payments')
+        .insert(details);
+
+      if (details.status === 'Approved') {
+        const { amount, userId } = details;
+        await trx('user_balance')
+          .where({ userId })
+          .increment({
+            balance: amount,
+          });
+      }
+
+      await trx.commit();
+      return {};
+    } catch (e) {
+      console.log(e);
+      await trx.rollback('Internal server error');
+    }
   }
 
   checkBalance(userId) {

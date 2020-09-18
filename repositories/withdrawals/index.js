@@ -1,5 +1,6 @@
 const { db } = global;
 const { CustomError } = require('../../helpers/errors');
+const promisify = require('../../helpers/promisify');
 
 class Withdraw {
   constructor(id) {
@@ -41,18 +42,34 @@ class Withdraw {
         .catch(err => reject(err));
     });
   }
-  updateStatus(id, status) {
-    return new Promise((resolve, reject) => {
-      db('withdrawals')
+  async updateStatus(id, status) {
+    console.log('STATUS', id, status);
+
+    const trx = await promisify(db.transaction.bind(db));
+    try {
+      const [{ amount, userId }] = await trx('withdrawals')
         .update({
           status,
         })
         .where({ id })
-        .returning(['amount', 'userId'])
-        .then(res => resolve(res[0]))
-        .catch(err => reject(err));
-    });
+        .returning(['amount', 'userId']);
+
+      if (status === 'approved') {
+        await trx('user_balance')
+          .where({ userId })
+          .decrement({
+            balance: amount,
+          });
+      }
+
+      await trx.commit();
+      return { amount, userId };
+    } catch (e) {
+      console.log(e);
+      await trx.rollback('Internal server error');
+    }
   }
+
   debit(userId, amount) {
     return new Promise((resolve, reject) => {
       db('user_balance')

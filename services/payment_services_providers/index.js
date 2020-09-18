@@ -1,6 +1,6 @@
 const PaymentsRepo = require('../../repositories/payments');
 
-const wpfCallback = async body => {
+const wfpCallback = async body => {
   const { email, transactionStatus, amount, orderReference, merchantSignature } = body;
   const usdAmount = amount;
 
@@ -13,5 +13,5 @@ const wpfCallback = async body => {
 };
 
 module.exports = {
-  wpfCallback,
+  wfpCallback,
 };

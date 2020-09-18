@@ -5,6 +5,7 @@ const { CustomError } = require('../../helpers/errors');
 
 const download = (folder, filename) => new Promise(resolvePromise => {
   const path = join(resolve(global.basedir, 'storage', folder, filename));
+
   const { size } = fs.lstatSync(path);
   fs.access(path, fs.constants.F_OK | fs.constants.R_OK, err => {
     if (err) {

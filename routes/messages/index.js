@@ -11,6 +11,7 @@ const { requestWrapper } = require('../../helpers/errors');
 const {
   create,
   deleteMessageById,
+  changePublicity,
 } = require('../../controllers/messages');
 
 const {
@@ -35,5 +36,9 @@ router.delete('/',
   requestWrapper(deleteMessageById),
 );
 
+router.patch('/',
+  authorized,
+  requestWrapper(changePublicity),
+);
 
 module.exports = { messages: router };

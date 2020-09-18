@@ -28,7 +28,7 @@ class PersonalChat {
           m.id,
           ch.id as "chatId",
           m.text,
-          m."attachmentId",
+          (select a.path from attachments a where a.id = m."attachmentId") as "attachment",
           m."createdAt",
           m."senderId",
           m."type",

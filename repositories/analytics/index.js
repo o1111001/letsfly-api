@@ -14,11 +14,11 @@ class Analytics {
         (select count(*)::int as "messages" from messages),
         (select count(*)::int as "paymentsCount" from payments where status = 'Approved'),
         (select coalesce(sum(amount), 0)::int as "paymentsAmount" from payments where status = 'Approved'),
-        (select 0 as "subcriptionCount"),
-        (select 0 as "subcriptionAmount"),
+        (select count(id)::int as "subcriptionCount" from chat_subscriptions),
+        (select coalesce(sum(amount), 0)::int as "subcriptionAmount" from chat_subscriptions),
         (select count(*)::int as "withdrawsCount" from withdrawals where status = 'approved'),
         (select coalesce(sum(amount), 0)::int as "withdrawsAmount" from withdrawals where status = 'approved'),
-        (select 0 as "grossIncomeAmount")
+        (select coalesce(sum(amount) / 2, 0)::int as "grossIncomeAmount" from chat_subscriptions)
         `,
         [],
       )

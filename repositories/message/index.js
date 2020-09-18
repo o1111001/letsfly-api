@@ -56,6 +56,19 @@ class Message {
         .catch(err => reject(err));
     });
   }
+
+  changePublicity({ id, isPublic }) {
+    return new Promise((resolve, reject) => {
+      db('messages')
+        .update({
+          isPublic,
+        })
+        .where({ id })
+        .returning('id')
+        .then(res => resolve(res[0]))
+        .catch(err => reject(err));
+    });
+  }
 }
 
 
