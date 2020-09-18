@@ -51,6 +51,8 @@ app.use(bodyParser.json());
 
 
 // regular routes
+app.use('*', (req, res, next) => { console.log(req.method, req.originalUrl, req.body); return next(); });
+
 app.get('/api/health', (req, res) => res.send('Success'));
 app.use('/api/v1/auth', authRoutes);
 
@@ -89,5 +91,5 @@ app.get(/.*/, (req, res) => {
 // global error handler
 app.use(globalErrorHandler);
 
-server.listen(PORT,
+server.listen(PORT, '192.168.0.103',
   () => console.log(`Server listening on ${PORT} port`));
