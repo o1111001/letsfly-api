@@ -26,8 +26,12 @@ const create = async req => {
     chatId,
     text,
     type,
+    membershipsList,
   } = req.body;
-  const details = chatType === 'personal' ? { senderId, receiverId } : { senderId, chatId };
+  const details = chatType === 'personal' ?
+    { senderId, receiverId } :
+    { senderId, chatId, membershipsList: JSON.parse(membershipsList) };
+
   const message = await createMessageService(chatType, { text, type, attachment }, details);
   return response(message);
 };

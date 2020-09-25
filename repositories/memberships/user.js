@@ -1,0 +1,95 @@
+const { db } = global;
+const { CustomError } = require('../../helpers/errors');
+
+const promisify = require('../../helpers/promisify');
+
+const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => {
+  const trx = await promisify(db.transaction.bind(db));
+  try {
+    const [ membership ] = await db('chats_memberships').where({ id: chatMembershipId });
+    if (membership.type === 'standard') {
+      const subscribs = await trx('chats_memberships_users')
+        .select('id')
+        .where({ userId, chatMembershipId });
+
+      if (subscribs.length) throw new CustomError('Already subscribed', 409);
+      await trx('chats_memberships_users')
+        .insert({
+          userId,
+          chatMembershipId,
+          amount: 0,
+          endedAt: Infinity,
+        });
+    } else if (membership.type === 'paid') {
+      console.log(123);
+
+      const [{ balance }] = await trx('user_balance').select('balance').where({ userId });
+      console.log(balance);
+      const [{ adminId }] = await trx('chats_admins').select('adminId').where({ chatId: membership.chatId });
+      console.log(adminId);
+      if (balance < membership.amount * period) {
+        throw new CustomError('Insufficient funds', 409);
+      }
+      const [existedMembershipSubscribe] = await trx('chats_memberships_users')
+        .select('*')
+        .where('endedAt', '>', 'now()')
+        .andWhere({ userId, chatMembershipId })
+        .orderBy('endedAt', 'desc')
+        .limit(1);
+      console.log(existedMembershipSubscribe);
+      const data = existedMembershipSubscribe ? [
+        userId,
+        period * membership.amount,
+        chatMembershipId,
+        existedMembershipSubscribe.endedAt,
+        existedMembershipSubscribe.endedAt,
+        period,
+      ] : [
+        userId,
+        period * membership.amount,
+        chatMembershipId,
+        period,
+      ];
+
+      const raw = existedMembershipSubscribe ? `
+        insert into chats_memberships_users 
+        ("userId", "amount", "chatMembershipId", "createdAt", "endedAt")
+        values
+        (?, ?, ?, ?, ? + (interval '30 days') * ?)
+        returning amount as "userPaid", amount / 2 as "adminGet"
+      ` : `
+        insert into chats_memberships_users 
+        ("userId", "amount", "chatMembershipId", "createdAt", "endedAt")
+        values
+        (?, ?, ?, now(), now() + (interval '30 days') * ?)
+        returning amount as "userPaid", amount / 2 as "adminGet"
+      `;
+
+      const { rows: [{ userPaid, adminGet }] } = await trx
+        .raw(raw, data);
+
+      await trx('user_balance')
+        .where({ userId: adminId })
+        .increment({
+          balance: adminGet,
+        });
+
+      await trx('user_balance')
+        .where({ userId })
+        .decrement({
+          balance: userPaid,
+        });
+
+    }
+
+    await trx.commit();
+    return {};
+  } catch (error) {
+    await trx.rollback(error);
+    throw new CustomError(error.message || error, error.status);
+  }
+};
+
+module.exports = {
+  subscribe,
+};

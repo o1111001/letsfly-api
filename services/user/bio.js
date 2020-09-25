@@ -1,6 +1,8 @@
 const { bio: BioRepo } = require('../../repositories');
 const { CustomError } = require('../../helpers/errors');
-
+const {
+  contacts: ContactsRepo,
+} = require('../../repositories/contacts');
 const getBio = async (id, me) => {
   const user = new BioRepo(id);
   let bio;

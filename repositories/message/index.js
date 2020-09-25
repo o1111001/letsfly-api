@@ -1,5 +1,6 @@
 const { db } = global;
-
+const promisify = require('../../helpers/promisify');
+const { CustomError } = require('../../helpers/errors');
 class Message {
   get({ id }) {
     return new Promise((resolve, reject) => {
@@ -12,22 +13,40 @@ class Message {
     });
   }
 
-  create(fields) {
-    const { chatId, senderId, text, type, attachment, attachmentId } = fields;
-    return new Promise((resolve, reject) => {
-      db('messages')
+  async create(fields) {
+    const trx = await promisify(db.transaction.bind(db));
+    try {
+      const { chatId, senderId, text, type, attachment, attachmentId, membershipsList } = fields;
+      if (!membershipsList || !membershipsList.length) throw new CustomError('Memberships is required', 500);
+      const [{ id: messageId, createdAt }] = await trx('messages')
         .insert({
-          chatId,
           senderId,
           text,
           type,
           attachment,
           attachmentId,
         })
-        .returning(['id', 'chatId', 'senderId', 'text', 'attachment', 'createdAt', 'type'])
-        .then(res => resolve(res[0]))
-        .catch(err => reject(err));
-    });
+        .returning(['id', 'createdAt']);
+
+      const memberships = await trx('chats_memberships')
+        .whereIn('id', membershipsList)
+        .andWhere({ chatId })
+        .select(
+          'type',
+          'avatar',
+          'name',
+          'id as chatMembershipId',
+        );
+
+      await trx('chats_memberships_messages')
+        .insert(memberships.map(({ chatMembershipId }) => ({ chatMembershipId, messageId })));
+
+      await trx.commit();
+      return { id: messageId, chatId, senderId, text, attachment, createdAt, type, memberships };
+    } catch (error) {
+      await trx.rollback(error);
+      throw new CustomError('Create message error', 500);
+    }
   }
 
   deleteById({ id }) {

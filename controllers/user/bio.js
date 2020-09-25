@@ -14,10 +14,16 @@ const {
   },
 } = require('../../services/user');
 
-const response = bio => ({
+const {
+  contacts: {
+    getAllContacts: getAllContactsService,
+  } } = require('../../services/contacts');
+
+const response = (bio, contacts) => ({
   message: `Success`,
   data: {
     bio,
+    contacts,
   },
 });
 
@@ -27,17 +33,18 @@ const getBio = async req => {
     isBanned: false,
     inBan: false,
   };
-
+  let contacts;
   const me = req.locals.id;
   if (user.id === 'me') {
     user.id = me;
+    contacts = await getAllContactsService(user.id);
   } else {
     const data = await checkBanService(me, user.id);
     user.isBanned = data.isBanned;
     user.inBan = data.inBan;
   }
   const bio = await getBioService(user.id, me);
-  return response({ ...bio, isBanned: user.isBanned, inBan: user.inBan });
+  return response({ ...bio, isBanned: user.isBanned, inBan: user.inBan }, contacts);
 };
 
 const fullBioResponse = data => ({
@@ -90,6 +97,7 @@ const updateAbout = async req => {
 const updateAvatar = async req => {
   const { id } = req.locals;
   const { file: { path } } = req;
+  console.log(path);
   const bio = await updateAvatarService(id, path);
   return response(bio);
 };

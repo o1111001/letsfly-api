@@ -1,5 +1,6 @@
 const { db } = global;
 const promisify = require('../../helpers/promisify');
+const { CustomError } = require('../../helpers/errors');
 class Chat {
   get(id) {
     return new Promise((resolve, reject) => {
@@ -13,116 +14,91 @@ class Chat {
     });
   }
 
+  async getMessages(userId, chatId) {
+    const data = await db.raw(`
+    select
+      m."id",
+      m."senderId",
+      m."text",
+      (select a."path" from attachments a where a.id = m."attachmentId") as "attachment",
+      m."createdAt",
+      m."type",
+      array_agg(json_build_object(
+        'chatMembershipId', cm.id,
+        'type', cm."type",
+        'avatar', cm.avatar,
+        'name', cm."name"
+      )) as "memberships"
+    from messages m
+    left join chats_memberships_messages cmm on cmm."messageId" = m.id 
+    left join chats_memberships cm on cm.id = cmm."chatMembershipId" 
+    left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+    where cm."chatId" = ?
+    and (
+      cmu."userId" = ? 
+      or cm."type" = 'standard'
+      or (select ca."adminId" from chats_admins ca where ca."chatId" = ?) = ?
+    )
+    group by m.id
+    `, [chatId, userId, chatId, userId]);
+    return data.rows;
+  }
+
   getFull(link, userId) {
     return new Promise((resolve, reject) => {
       db.raw(`
       select 
       id, 
-      type,
-      name,
+      "type",
+      "name",
       description,
       link,
       price,
       avatar,
-      (select cu."userId" from chats_users cu where cu."userId" = ? and cu."chatId" = ch.id)::boolean as "isMember",
-      (select ca."adminId" from chats_admins ca where ca."adminId" = ? and ca."chatId" = ch.id)::boolean as "isAdmin",
-      (select chs."endedAt" from chat_subscriptions chs where chs."userId" = ? and chs."chatId" = ch.id and chs."endedAt" > now()) as "isHasActiveSubscription",
-      (select count(cu."userId")::int from chats_users cu where cu."chatId" = ch.id) as "subscribers",
-
       (
-        case
-        when ch.type = 'private'  then (
-          case
-          when (
-            (select chs."chatId" from chat_subscriptions chs where chs."userId" = ? and chs."endedAt" > now() and chs."chatId" = ch.id )::boolean 
-            or (select ca."adminId" from chats_admins ca where ca."adminId" = ? and ca."chatId" = ch.id)::boolean
-            ) then (
-            select coalesce(array_agg(
-              json_build_object(
-                'id', m.id,
-                'text', m."text",
-                'type', m."type",
-                'attachment', (select a.path from attachments a where a.id = m."attachmentId"),
-                'isPublic', m."isPublic",
-                'isRead', (
-
-                  select (
-                    case
-                    when m.id <= (select "messageId" from messages_is_read where "userId" != ? order by "messageId" desc limit 1)
-                      then 1
-                    else 0
-                  end
-                  )::boolean as "isRead"
-
-                ),
-                
-                'senderId', m."senderId",
-                'createdAt', m."createdAt"
-              ) ORDER BY m."createdAt" asc
-            ), '{}')
-            from messages m 
-            where m."chatId" = ch.id 
-          ) else (
-            select coalesce(array_agg(
-              json_build_object(
-                'id', m.id,
-                'text', m."text",
-                'type', m."type",
-                'attachment', (select a.path from attachments a where a.id = m."attachmentId"),
-                'isPublic', m."isPublic",
-                'isRead', (
-
-                  select (
-                    case
-                    when m.id <= (select "messageId" from messages_is_read where "userId" != ? order by "messageId" desc limit 1)
-                      then 1
-                    else 0
-                  end
-                  )::boolean as "isRead"
-
-                ),
-                'senderId', m."senderId",
-                'createdAt', m."createdAt"
-              ) ORDER BY m."createdAt" asc
-            ), '{}')
-            from messages m 
-            where m."chatId" = ch.id and (m."isPublic" = true or m."senderId" = -1)
-            ) end
-        ) 
-        when ch.type = 'public' then (
-          select coalesce(array_agg(
-            json_build_object(
-              'id', m.id,
-              'text', m."text",
-              'type', m."type",
-              'attachment', (select a.path from attachments a where a.id = m."attachmentId"),
-              'isPublic', m."isPublic",
-              'isRead', (
-
-                select (
-                  case
-                  when m.id <= (select "messageId" from messages_is_read where "userId" != ? order by "messageId" desc limit 1)
-                    then 1
-                  else 0
-                end
-                )::boolean as "isRead"
-
-              ),
-              'senderId', m."senderId",
-              'createdAt', m."createdAt"
-              ) ORDER BY m."createdAt" asc
-            ), '{}') as "messages"
-          from messages m 
-          where m."chatId" = ch.id
-        ) else (
-          select array_agg(json_build_object())
+        select count(cmu.id)::int from chats_memberships_users cmu where cmu."userId" = ? and cmu."chatMembershipId" in (
+          select cm.id from chats_memberships cm where cm."chatId" = ch.id
         )
-      end
-      ) as "messages"
+      )::boolean as "isMember",
+      (select ca."adminId" from chats_admins ca where ca."adminId" = ? and ca."chatId" = ch.id)::boolean as "isAdmin",
+      (
+        select count(distinct cmu."userId") from chats_memberships_users cmu where cmu."chatMembershipId" in (
+          select cm.id from chats_memberships cm where cm."chatId" = ch.id
+        )
+      ) as "subscribers",
+      (
+        select 
+      	array_agg(json_build_object(
+          'id', cm.id, 
+          'name', cm."name", 
+          'description', cm."description", 
+          'avatar', cm."avatar", 
+          'amount', cm."amount", 
+          'type', cm."type",
+          'subscribe', (
+          	select json_build_object('endedAt', cmu."endedAt") 
+          	from chats_memberships_users cmu 
+          	where cmu."chatMembershipId" = cm.id
+          	and cmu."userId" = ?
+          	and cmu."createdAt" < now() 
+            and cmu."endedAt" > now()
+            order by cmu."endedAt" desc
+            limit 1
+          )
+        )) 
+        from chats_memberships cm
+        where cm."chatId" = ch.id
+      ) as "memberships",
+      (
+        select json_build_object('id', cm.id, 'name', cm.name, 'amount', cm.amount, 'type', cm.type) 
+        from chats_memberships cm 
+        where cm."chatId" = ch.id 
+        and cm.type = 'standard' limit 1
+      ) as "standardMembership"
       from chats ch
       where ch."link" = ?
       `,
-      [userId, userId, userId, userId, userId, userId, userId, userId, link])
+      [userId, userId, userId, link])
         .then(res => {
           resolve(res.rows[0]);
         })
@@ -133,11 +109,19 @@ class Chat {
   async create(fields, usersList, adminId) {
     const trx = await promisify(db.transaction.bind(db));
     try {
-      const [chatId] = await trx('chats')
+      const [ chatId ] = await trx('chats')
         .insert(fields)
         .returning('id');
+      const [chatMembershipId] = await trx('chats_memberships')
+        .insert({
+          name: 'personal',
+          chatId,
+          amount: 0,
+          type: 'standard',
+        })
+        .returning('id');
 
-      if (['public', 'private'].includes(fields.type)) {
+      if (fields.type === 'private') {
         await trx('messages')
           .insert({
             senderId: -1,
@@ -149,9 +133,14 @@ class Chat {
       if (usersList.length || adminId) {
         const users = await trx('users')
           .whereIn('id', adminId ? [...usersList, adminId] : usersList)
-          .select('id as userId', trx.raw('? AS ??', [chatId, 'chatId']));
+          .select(
+            'id AS userId',
+            trx.raw('? AS ??', [chatMembershipId, 'chatMembershipId']),
+            trx.raw('? AS ??', [0, 'amount']),
+            trx.raw(`'infinity'::timestamp AS ??`, ['endedAt']),
+          );
 
-        await trx('chats_users')
+        await trx('chats_memberships_users')
           .insert(users);
       }
 
@@ -164,10 +153,11 @@ class Chat {
       }
 
       await trx.commit();
-      return chatId;
+      return { chatId, chatMembershipId };
     } catch (e) {
       console.log(e);
       await trx.rollback('Internal server error');
+      throw new CustomError('Internal server error', 500);
     }
   }
 
@@ -208,6 +198,16 @@ class Chat {
         .then(res => resolve(res[0]))
         .catch(err => reject(err));
     });
+  }
+  async getChatByMessageId(messageId) {
+    const [data] = await db
+      .select('chats.id as chatId', 'chats.type')
+      .from('chats')
+      .rightJoin('chats_memberships', 'chats.id', 'chats_memberships.chatId')
+      .rightJoin('chats_memberships_messages', 'chats_memberships.id', 'chats_memberships_messages.chatMembershipId')
+      .where({ messageId })
+      .limit(1);
+    return data;
   }
 
   subcribe(chatId, userId) {
@@ -284,20 +284,30 @@ class Chat {
       })
       .del();
   }
-  getMembers({ chatId }) {
-    return new Promise((resolve, reject) => {
-      db('chats_users')
-        .where({
-          chatId,
-        })
-        .then(res => resolve(res))
-        .catch(err => reject(err));
-    });
+  async getMembers({ chatId }) {
+    const { rows: [{ users }] } = await db.raw(`
+      select array_agg(distinct cmu."userId") users
+      from chats_memberships_users cmu
+      left join chats_memberships cm on cm.id = cmu."chatMembershipId"
+      left join chats c on c.id = cm."chatId"
+      where c.id = ?
+    `, [chatId]);
+    console.log(users);
+    return users;
+    // return new Promise((resolve, reject) => {
+    //   db('chats_users')
+    //     .where({
+    //       chatId,
+    //     })
+    //     .then(res => resolve(res))
+    //     .catch(err => reject(err));
+    // });
   }
 
 
 
   countUnReadMessagesInChat({ chatId, userId }) {
+    console.log(chatId, userId);
     return new Promise((resolve, reject) => {
       db.raw(`
         select count(*)::int as "count" from messages pm
@@ -389,21 +399,19 @@ class Chat {
 
 
   readMessages(type, details) {
-    const personal = ({ userId, chatId }) => db.raw(
+    const personal = ({ userId, messageId }) => db.raw(
       `
-      select 
+      select
         ?,
-        m.id,
+        ?,
         true
-      from messages m
-      where m."senderId" != ? and m."chatId" = ?
-      order by m."createdAt" desc limit 1
       `,
-      [userId, userId, chatId],
+      [userId, messageId],
     );
 
     const defineSubquery = {
       personal: personal(details),
+      group: personal(details),
     };
 
     return new Promise((resolve, reject) => {
@@ -479,6 +487,17 @@ class Chat {
         .catch(err => reject(err));
     });
   }
+  isChatAdminByLink({ adminId, link }) {
+    return new Promise((resolve, reject) => {
+      db('chats_admins')
+        .where({
+          adminId,
+          link,
+        })
+        .then(result => resolve(result[0]))
+        .catch(err => reject(err));
+    });
+  }
 
   getAdmins(chatId) {
     return db('chats_admins')
@@ -540,14 +559,13 @@ class Chat {
         c."contact" as "id",
         c."displayedFirstName",
         c."displayedLastName",
-        cu."userId"::boolean as "isAlreadyMember"
+        cmu."userId"::boolean as "isAlreadyMember"
       from contacts c 
-      left join chats_users cu 
-        on cu."chatId" = (
-          select id from chats where link = ?
-        )
-        and cu."userId" = c.contact 
+      left join chats_memberships_users cmu on cmu."userId" = c."contact"
+      left join chats_memberships cm on cm.id = cmu."chatMembershipId"
+      left join chats ch on ch.id = cm."chatId" and ch."link" = ?
       where c."userId" = ?
+      group by c.contact, c."displayedFirstName", c."displayedLastName", cmu."userId" 
     `, [link, userId],
       )
         .then(result => resolve(result.rows))
@@ -586,115 +604,124 @@ class Chat {
   }
 
   async joinUsers({ link, usersList }) {
-    const [{ id: chatId }] = await db('chats')
-      .where({ link })
-      .select('id');
-    const [{ users: duplicatedUsers }] = await db('chats_users')
-      .where({ chatId })
-      .select(db.raw('ARRAY_AGG("userId") as users'));
-    return db('chats_users')
-      .insert(
-        await db('users')
-          .whereIn('id', usersList)
-          .andWhere('id', 'not in', duplicatedUsers)
-          .select('id as userId', db.raw('? AS ??', [chatId, 'chatId'])),
-      );
+    const trx = await promisify(db.transaction.bind(db));
+    try {
+      const [{ id: chatId }] = await db('chats')
+        .where({ link })
+        .select('id');
+
+      const [{ users: duplicatedUsers }] = await db('chats_users')
+        .where({ chatId })
+        .select(db.raw('ARRAY_AGG("userId") as users'));
+
+
+      const users =  await db('users')
+        .whereIn('id', usersList)
+        .andWhere('id', 'not in', duplicatedUsers)
+        .select('id as userId', db.raw('? AS ??', [chatId, 'chatId']));
+
+      await db('chats_users')
+        .insert(users);
+
+      await trx.commit();
+      return;
+    } catch (error) {
+      await trx.rollback('Internal server error');
+      throw new CustomError('Internal server error', 500);
+    }
+
   }
 
   getAll({ userId }) {
     return new Promise((resolve, reject) => {
       db.raw(
-        `select
-        pm."chatId",
-        pm."text",
-        pm."createdAt",
-        pm."type",
-        pm."attachment",
-        pm."senderId",
-        ch."type" as "chatType",
-        (
-          case
-          when ch.type = 'personal'
-            then (
-              select json_build_object(
-		          'id', u1.id,
-		          'username',  u1."username",
-		          'firstName',  u1."firstName",
-		          'lastName',  u1."lastName",
-		          'email',  u1."email",
-		          'phone',  u1."phone",
-		          'about',  u1."about",
-		          'avatar',  u1."avatar",
-		          'isOnline',  u1."isOnline",
-		          'lastOnline',  u1."lastOnline",
-		          'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u1.id) )
-	          ) as "info" from users u1 where id = (
-	          	select cu."userId" from chats_users cu where cu."chatId" = pm."chatId" and cu."userId" != ?
-	          )	
-          	)
-          	when ch.type = 'public'
-          	then (
-          	  select json_build_object(
-          		'id', ch.id,
-              'name', ch."name",
-              'type', ch."type",
-              'description', ch."description",
-              'link', ch."link",
-              'price', ch."price",
-              'avatar', ch."avatar"
-	          ) as "info" from chats ch where id = pm."chatId"	
+        `with messages_list as (
+          select 
+            max(cmm."messageId") as "messageId", 
+            max(cm."chatId") as "chatId", 
+            max(cm."id") as "chatMembershipId"
+            from chats_memberships cm 
+            left join chats_memberships_messages cmm on cmm."chatMembershipId" = cm."id"
+            left join chats c on c.id = cm."chatId" 
+            where (select ca."adminId" from chats_admins ca where ca."chatId" = c."id" and ca."adminId" = ?)::boolean
+            or cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ?)
+            group by c.id
+        ) select
+          ml."chatId",
+          m."text",
+          m."createdAt",
+          m."type",
+          m."attachment",
+          m."senderId",
+          c."type" as "chatType",
+          (
+            case
+            when c.type = 'personal'
+              then (
+                select json_build_object(
+                'id', u1.id,
+                'username',  u1."username",
+                'firstName',  u1."firstName",
+                'lastName',  u1."lastName",
+                'email',  u1."email",
+                'phone',  u1."phone",
+                'about',  u1."about",
+                'avatar',  u1."avatar",
+                'isOnline',  u1."isOnline",
+                'lastOnline',  u1."lastOnline",
+                'displayedName', (select concat(c."displayedFirstName", ' ', c."displayedLastName") from contacts c where (c."userId" = ? and c.contact = u1.id) )
+              ) as "info" from users u1 where id = (
+                select cmu."userId" from chats_memberships_users cmu where cmu."chatMembershipId" = ml."chatMembershipId" and cmu."userId" != ?
+              )	
+              )
+              when c.type = 'group'
+              then (
+                select json_build_object(
+                'id', ch.id,
+                'name', ch."name",
+                'type', ch."type",
+                'description', ch."description",
+                'link', ch."link",
+                'price', ch."price",
+                'avatar', ch."avatar"
+              ) as "info" from chats ch where id = ml."chatId"
+              )
+            end
+          ) as opponent,
+          (
+            with is_read as (
+              select m.id, mir."isRead", m."createdAt" from messages m
+              left join chats_memberships_messages cmm on cmm."messageId" = m.id 
+              left join chats_memberships cm on cm.id = cmm."chatMembershipId" 
+              left join chats_memberships_users cmu on cmu."chatMembershipId" = cm."id"
+
+              left join chats ch on ch.id = cm."chatId"
+              left join messages_is_read mir on mir."messageId" = m.id and mir."userId" = ?
+              where ch.id = c.id and m."senderId" != ?
+              and cmu."userId" = ?
+            ) select count(id)::int
+            from is_read ir
+            where ir."createdAt" > (
+              select 
+              (
+                case
+                when (select count(id)::int from is_read ir where ir."isRead")::boolean
+                then (
+                  select ir."createdAt"
+                  from is_read ir
+                  where ir."isRead" is true
+                  order by ir."createdAt" desc
+                  limit 1
+                ) else (
+                  select '-infinity'::timestamp
+                ) end
+              )
             )
-            when ch.type = 'private'
-          	then (
-          	  select json_build_object(
-          		'id', ch.id,
-              'name', ch."name",
-              'type', ch."type",
-              'description', ch."description",
-              'link', ch."link",
-              'price', ch."price",
-              'avatar', ch."avatar"
-	          ) as "info" from chats ch where id = pm."chatId"
-          	)
-          end
-        ) as opponent,
-
-        (
-          select count(*)::int as "count" from messages m
-          where 
-          m."chatId" = pm."chatId" 
-          and m."senderId" != ?
-          and m.id > (
-            select m.id
-            from messages m
-            left join messages_is_read mir on m.id = mir."messageId" and mir."userId" = ?
-            where 
-            m."chatId" = pm."chatId"
-            and  mir."isRead" is true
-            order by m.id desc
-            limit 1
-          )
-        )
-        from messages pm
-        inner join chats ch on ch.id = pm."chatId"
-
-        where pm.id in (
-        select coalesce(
-          max(mr."messageId"), 
-          (select max("unread_chat"."id") from (select mq.id from messages mq where mq."chatId" = m."chatId" and (
-            (select chs."chatId" from chat_subscriptions chs where chs."userId" = ? and chs."endedAt" > now())::boolean 
-            or (select ca."adminId" from chats_admins ca where ca."chatId" = m."chatId" and ca."adminId" = ?) :: boolean
-            or (mq."isPublic" = true or mq."senderId" = -1 )
-
-          ) order by mq.id desc) as "unread_chat"),
-          0
-        ) as "unread" from messages_is_read mr
-          right join messages m on m.id = mr."messageId"
-          right join chats_users cu on cu."chatId" = m."chatId"
-          where cu."userId" = ?
-          group by m."chatId"
-        )
-        order by pm."createdAt" desc                                                                                                                                                                                                                                                                                                                                              
+          ) as "count"
+          from messages_list ml
+          left join messages m on m.id = ml."messageId"
+          left join chats c on c.id = ml."chatId"
+          order by m."createdAt" desc                                                                                                                                                                                                                                                                                                     
         `,
         [userId, userId, userId, userId, userId, userId, userId],
       )

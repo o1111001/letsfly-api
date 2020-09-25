@@ -93,10 +93,12 @@ const createInvites = async req => {
 };
 
 const joinUsers = async req => {
-  const { usersList, link } = req.body;
+  const { usersList, membershipId } = req.body;
   const { id: userId } = req.locals;
-  // await isChatAdminService(userId, link);
-  await joinUsersService(link, usersList);
+  // console.log(123, usersList, link);
+  const chatId = await getChatIdByMembershipId(membershipId)
+  await isChatAdminService(userId, chatId);
+  await joinUsersService(membershipId, usersList);
 
   return responseCreator();
 };

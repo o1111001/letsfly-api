@@ -26,6 +26,7 @@ const {
   chatsRoutes,
   personalChatsRoutes,
   groupChatsRoutes,
+  membershipsRoutes,
   messagesRoutes,
   usersBioRoutes,
   usersBanRoutes,
@@ -63,6 +64,7 @@ app.use('/api/v1/users/ban', usersBanRoutes);
 app.use('/api/v1/chats', chatsRoutes);
 app.use('/api/v1/chats/personal', personalChatsRoutes);
 app.use('/api/v1/chats/group', groupChatsRoutes);
+app.use('/api/v1/chats/group/memberships', membershipsRoutes);
 
 app.use('/api/v1/contacts', contactsRoutes);
 app.use('/api/v1/contacts/find', contactsFindRoutes);

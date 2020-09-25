@@ -19,7 +19,7 @@ module.exports = async (chatType, data, details) => {
     return createPersonalMessage({ text, type, attachment, attachmentId }, details);
   }
 
-  if (chatType === 'public' || chatType === 'private') {
+  if (chatType === 'group') {
     return createGroupMessage({ text, type, attachment, attachmentId }, details);
   }
 

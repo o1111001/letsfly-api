@@ -38,11 +38,16 @@ const isChatAdmin = async (adminId, chatId) => {
   if (!isAdmin) throw new CustomError('Unauthorized', 403);
   return isAdmin;
 };
+const isChatAdminByLink = async (adminId, link) => {
+  const isAdmin = await Chat.isAdmin({ adminId, link });
+  if (!isAdmin) throw new CustomError('Unauthorized', 403);
+  return isAdmin;
+};
 
 const getContacts = (chatId, userId) => Chat.getContactsInChat({ chatId, userId });
 const getContactsForNewChat = (userId, link) => Chat.getContactsForNewChat({ userId, link });
 const checkLink = link => Chat.isFreeLink({ id: -1, link });
-const joinUsers = (link, usersList) => Chat.joinUsers({ link, usersList });
+const joinUsers = (membershipId, usersList) => Chat.joinUsers({ membershipId, usersList });
 module.exports = {
   createChat,
   changeChat,
@@ -51,6 +56,7 @@ module.exports = {
   getAdmins,
   getSubscribers,
   isChatAdmin,
+  isChatAdminByLink,
   getContacts,
   getContactsForNewChat,
   checkLink,
