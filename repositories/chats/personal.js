@@ -22,7 +22,7 @@ class PersonalChat {
   }
 
 
-  getPersonalChatByUserId({ senderId, receiverId }) {
+  getPersonalChatByUserId({ senderId, receiverId, limit = 10, from }) {
     return new Promise((resolve, reject) => {
       db.raw(
         `
@@ -57,13 +57,15 @@ class PersonalChat {
               limit 1
             )
           ) and m."isDeleted" != true
-          order by "createdAt" desc limit 30
-        ) select 
-          *
-          from messages_list 
-          order by "createdAt" asc
+          ${from && !Number.isNaN(Number(from)) ? `and m.id < ${from}` : ''}
+          order by "createdAt" desc
+          limit ?
+              
+        ) select * 
+        from messages_list ml 
+        order by "createdAt" desc
         `,
-        [senderId, senderId, receiverId],
+        [senderId, senderId, receiverId, limit],
       )
         .then(result => resolve(result.rows))
         .catch(err => reject(err));

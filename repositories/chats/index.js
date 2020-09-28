@@ -334,17 +334,20 @@ class Chat {
   countAttachmentsInChat(type, details) {
     const personal = ({ senderId, receiverId }) => db.raw(
       `
-        select a."type" 
-        from chats ch
-        left join messages m on m."chatId" = ch.id
-        left join attachments a on a.id = m."attachmentId"
-        where ch.id = (
-          select "chatId" from chats_users cu
-          left join chats ch on ch.id = cu."chatId"
-          where cu."userId" in (?, ?) and ch.type = 'personal'
-          group by cu."chatId"
-          having count(cu."userId") = 2
-        ) and attachment is not null
+      select a."type" from attachments a
+      left join messages m on m."attachmentId" = a.id 
+      left join chats_memberships_messages cmm on cmm."messageId" = m.id 
+     	where cmm."chatMembershipId" = (
+     	select cm.id as "chatMembershipId"
+	      from chats_memberships cm
+	      left join chats ch on ch.id = cm."chatId" and ch.type = 'personal'
+	      left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+	      where cmu."userId" in (?, ?)
+	      group by cm.id
+	      having count(cm.id) = 2
+	      limit 1
+     	)
+
       `,
       [senderId, receiverId],
     );
@@ -654,6 +657,7 @@ class Chat {
           m."attachment",
           m."senderId",
           c."type" as "chatType",
+          (select count(*)::int from messages_is_read mir where mir."messageId" = ml."messageId" and mir."userId" != ? )::boolean as "isRead",
           (
             case
             when c.type = 'personal'
@@ -690,40 +694,39 @@ class Chat {
           ) as opponent,
           (
             with is_read as (
-              select m.id, mir."isRead", m."createdAt" from messages m
-              left join chats_memberships_messages cmm on cmm."messageId" = m.id 
-              left join chats_memberships cm on cm.id = cmm."chatMembershipId" 
-              left join chats_memberships_users cmu on cmu."chatMembershipId" = cm."id"
+              select distinct cmm."messageId" as "id", mir."isRead" from messages m2
+              left join chats_memberships_messages cmm on cmm."messageId" = m2.id
 
-              left join chats ch on ch.id = cm."chatId"
-              left join messages_is_read mir on mir."messageId" = m.id and mir."userId" = ?
-              where ch.id = c.id and m."senderId" != ?
-              and cmu."userId" = ?
-            ) select count(id)::int
+              left join chats_memberships cm on cm.id = cmm."chatMembershipId" 
+
+              left join messages_is_read mir on mir."messageId" = cmm."messageId" and mir."userId" = ?
+              where cm."chatId" = c.id and m2."senderId" != ?
+            ) select count(ir.id)::int
             from is_read ir
-            where ir."createdAt" > (
+            where ir.id > (
               select 
               (
                 case
                 when (select count(id)::int from is_read ir where ir."isRead")::boolean
                 then (
-                  select ir."createdAt"
+                  select ir.id
                   from is_read ir
                   where ir."isRead" is true
-                  order by ir."createdAt" desc
+                  order by ir.id desc
                   limit 1
                 ) else (
-                  select '-infinity'::timestamp
+                  select -1
                 ) end
               )
             )
+            and m."senderId" != ?
           ) as "count"
           from messages_list ml
           left join messages m on m.id = ml."messageId"
           left join chats c on c.id = ml."chatId"
           order by m."createdAt" desc                                                                                                                                                                                                                                                                                                     
         `,
-        [userId, userId, userId, userId, userId, userId, userId],
+        Array(8).fill(userId),
       )
         .then(result => {
           resolve(result.rows);

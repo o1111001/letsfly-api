@@ -93,5 +93,5 @@ app.get(/.*/, (req, res) => {
 // global error handler
 app.use(globalErrorHandler);
 
-server.listen(PORT, '192.168.0.103',
+server.listen(PORT,
   () => console.log(`Server listening on ${PORT} port`));

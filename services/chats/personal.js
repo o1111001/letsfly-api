@@ -4,7 +4,7 @@ const PersonalChat = require('../../repositories/chats/personal');
 const { CustomError } = require('../../helpers/errors');
 const { broadcastToSetOfRooms } = require('../../realtime/broadcast');
 
-const getChatByUserId = (senderId, receiverId) => PersonalChat.getPersonalChatByUserId({ senderId, receiverId });
+const getChatByUserId = (senderId, receiverId, from) => PersonalChat.getPersonalChatByUserId({ senderId, receiverId, from });
 
 const getCountAttachments = (senderId, receiverId) => Chat.countAttachmentsInChat('personal', { senderId, receiverId });
 

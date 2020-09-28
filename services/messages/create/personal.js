@@ -25,6 +25,7 @@ module.exports = async (data, details) => {
 
   const message = {
     ...createdMessage,
+    attachment,
     chatType: 'personal',
   };
   console.log('AAAA', await Chat.getChatByMessageId(createdMessage.id));

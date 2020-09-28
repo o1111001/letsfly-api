@@ -20,7 +20,8 @@ const response = (list, isBanned, inBan) => ({
 const getChatByUserId = async req => {
   const { id } = req.params;
   const { id: userId } = req.locals;
-  const list = await getChatByUserIdService(userId, id);
+  const { from } = req.query;
+  const list = await getChatByUserIdService(userId, id, from);
   const { isBanned, inBan } = await checkBanService(userId, id);
   return response(list, isBanned, inBan);
 };
