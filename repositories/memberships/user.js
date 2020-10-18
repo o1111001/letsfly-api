@@ -21,12 +21,9 @@ const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => 
           endedAt: Infinity,
         });
     } else if (membership.type === 'paid') {
-      console.log(123);
 
       const [{ balance }] = await trx('user_balance').select('balance').where({ userId });
-      console.log(balance);
       const [{ adminId }] = await trx('chats_admins').select('adminId').where({ chatId: membership.chatId });
-      console.log(adminId);
       if (balance < membership.amount * period) {
         throw new CustomError('Insufficient funds', 409);
       }
@@ -36,7 +33,6 @@ const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => 
         .andWhere({ userId, chatMembershipId })
         .orderBy('endedAt', 'desc')
         .limit(1);
-      console.log(existedMembershipSubscribe);
       const data = existedMembershipSubscribe ? [
         userId,
         period * membership.amount,

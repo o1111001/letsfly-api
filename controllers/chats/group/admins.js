@@ -15,11 +15,9 @@ const {
   joinUsers: joinUsersService,
 } = require('../../../services/chats/group/admin');
 
-const getAvatar = files => ((files.avatar && files.avatar.length) ? files.avatar[0].path : null);
 
 const createChat = async req => {
   const { id: adminId } = req.locals;
-  const avatar = getAvatar(req.files);
   const {
     type,
     name,
@@ -27,6 +25,7 @@ const createChat = async req => {
     link,
     price,
     usersList,
+    avatar,
   } = req.body;
 
   const chatId = await createChatService({
@@ -37,7 +36,7 @@ const createChat = async req => {
     price,
     avatar,
   },
-  usersList ? JSON.parse(usersList) : [],
+  [],
   adminId,
   );
   return responseCreator({ chatId });
@@ -45,9 +44,9 @@ const createChat = async req => {
 
 const updateAvatar = async req => {
   const { id: userId } = req.locals;
-  const avatar = getAvatar(req.files);
   const {
     id: chatId,
+    avatar,
   } = req.body;
   await isChatAdminService(userId, chatId);
   await updateAvatarService(chatId, avatar);
@@ -95,8 +94,7 @@ const createInvites = async req => {
 const joinUsers = async req => {
   const { usersList, membershipId } = req.body;
   const { id: userId } = req.locals;
-  // console.log(123, usersList, link);
-  const chatId = await getChatIdByMembershipId(membershipId)
+  const chatId = await getChatIdByMembershipId(membershipId);
   await isChatAdminService(userId, chatId);
   await joinUsersService(membershipId, usersList);
 

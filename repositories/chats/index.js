@@ -17,22 +17,28 @@ class Chat {
   async getMessages(userId, chatId) {
     const data = await db.raw(`
     select
+      
       m."id",
       m."senderId",
       m."text",
-      (select a."path" from attachments a where a.id = m."attachmentId") as "attachment",
+      (select a."key" from attachments a where a.id = m."attachmentId") as "attachment",
       m."createdAt",
       m."type",
-      array_agg(json_build_object(
-        'chatMembershipId', cm.id,
-        'type', cm."type",
-        'avatar', cm.avatar,
-        'name', cm."name"
-      )) as "memberships"
+      (
+        select array_agg(json_build_object(
+          'id', cm2.id,
+          'type', cm2."type",
+          'avatar', cm2.avatar,
+          'name', cm2."name"
+        )) as "memberships" from chats_memberships cm2
+        join chats_memberships_messages cmm2 on cmm2."chatMembershipId" = cm2.id
+        where cmm2."messageId" = m.id
+      )
+      
     from messages m
-    left join chats_memberships_messages cmm on cmm."messageId" = m.id 
-    left join chats_memberships cm on cm.id = cmm."chatMembershipId" 
-    left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+    join chats_memberships_messages cmm on cmm."messageId" = m.id 
+    join chats_memberships cm on cm.id = cmm."chatMembershipId" 
+    join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
     where cm."chatId" = ?
     and (
       cmu."userId" = ? 
@@ -40,6 +46,7 @@ class Chat {
       or (select ca."adminId" from chats_admins ca where ca."chatId" = ?) = ?
     )
     group by m.id
+    order by m.id desc
     `, [chatId, userId, chatId, userId]);
     return data.rows;
   }
@@ -53,7 +60,6 @@ class Chat {
       "name",
       description,
       link,
-      price,
       avatar,
       (
         select count(cmu.id)::int from chats_memberships_users cmu where cmu."userId" = ? and cmu."chatMembershipId" in (
@@ -106,11 +112,11 @@ class Chat {
     });
   }
 
-  async create(fields, usersList, adminId) {
+  async create({ name, description, avatar, link, type }, usersList, adminId) {
     const trx = await promisify(db.transaction.bind(db));
     try {
       const [ chatId ] = await trx('chats')
-        .insert(fields)
+        .insert({ name, description, avatar, link, type })
         .returning('id');
       const [chatMembershipId] = await trx('chats_memberships')
         .insert({
@@ -120,13 +126,17 @@ class Chat {
           type: 'standard',
         })
         .returning('id');
-
-      if (fields.type === 'private') {
-        await trx('messages')
+      if (type === 'group') {
+        const [{ id: messageId }] = await trx('messages')
           .insert({
             senderId: -1,
             text: 'Chat has been created',
-            chatId,
+          })
+          .returning(['id']);
+        await trx('chats_memberships_messages')
+          .insert({
+            messageId,
+            chatMembershipId,
           });
       }
 
@@ -268,14 +278,27 @@ class Chat {
       await trx.rollback('Internal server error');
     }
   }
-  leave(chatId, userId) {
-    return db('chats_users')
-      .where({
-        chatId,
-        userId,
-      })
-      .del();
+  async leave(chatMembershipId, userId) {
+    const trx = await promisify(db.transaction.bind(db));
+    try {
+
+      const [{ type }] = await trx('chats_memberships').select('type').where({ id: chatMembershipId });
+      if (type === 'standard') {
+        await db('chats_memberships_users')
+          .where({
+            chatMembershipId,
+            userId,
+          })
+          .del();
+      }
+      await trx.commit();
+      return;
+    } catch (error) {
+      console.log(error);
+      await trx.rollback('Internal server error');
+    }
   }
+
   declineInvite(chatId, invitedUserId) {
     return db('invitations_for_subscription')
       .where({
@@ -292,22 +315,12 @@ class Chat {
       left join chats c on c.id = cm."chatId"
       where c.id = ?
     `, [chatId]);
-    console.log(users);
     return users;
-    // return new Promise((resolve, reject) => {
-    //   db('chats_users')
-    //     .where({
-    //       chatId,
-    //     })
-    //     .then(res => resolve(res))
-    //     .catch(err => reject(err));
-    // });
   }
 
 
 
   countUnReadMessagesInChat({ chatId, userId }) {
-    console.log(chatId, userId);
     return new Promise((resolve, reject) => {
       db.raw(`
         select count(*)::int as "count" from messages pm
@@ -451,7 +464,7 @@ class Chat {
           a.id, 
           a.type, 
           a."createdAt", 
-          a.path,
+          a.key,
           (select pm."senderId" from messages pm where pm."attachmentId" = a.id)
         from "attachments" a
         where "id" in (
@@ -654,7 +667,7 @@ class Chat {
           m."text",
           m."createdAt",
           m."type",
-          m."attachment",
+          (select a."key" from attachments a where a.id =  m."attachmentId") as "attachment",
           m."senderId",
           c."type" as "chatType",
           (select count(*)::int from messages_is_read mir where mir."messageId" = ml."messageId" and mir."userId" != ? )::boolean as "isRead",
@@ -686,7 +699,6 @@ class Chat {
                 'type', ch."type",
                 'description', ch."description",
                 'link', ch."link",
-                'price', ch."price",
                 'avatar', ch."avatar"
               ) as "info" from chats ch where id = ml."chatId"
               )
@@ -729,6 +741,7 @@ class Chat {
         Array(8).fill(userId),
       )
         .then(result => {
+          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));

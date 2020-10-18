@@ -96,9 +96,8 @@ const updateAbout = async req => {
 
 const updateAvatar = async req => {
   const { id } = req.locals;
-  const { file: { path } } = req;
-  console.log(path);
-  const bio = await updateAvatarService(id, path);
+  const { key } = req.body;
+  const bio = await updateAvatarService(id, key);
   return response(bio);
 };
 

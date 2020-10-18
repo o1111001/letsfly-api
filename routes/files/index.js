@@ -2,20 +2,22 @@
 
 const express = require('express');
 const router = express.Router();
-const { requestFileWrapper } = require('../../helpers/errors');
+const { requestWrapper } = require('../../helpers/errors');
+const authorized = require('../../policies/authorized');
 
 const {
-  getFile,
+  getPreSignedUrl,
 } = require('../../controllers/files');
 
 const {
-  checkFolder,
+  checkDirectory,
 } = require('../../middlewares/files');
 
-router.get('/:main/:folder/:filename',
-  checkFolder,
-  // authorized,
-  requestFileWrapper(getFile),
+// get pre-signed url
+router.get('/',
+  // checkDirectory,
+  authorized,
+  requestWrapper(getPreSignedUrl),
 );
 
 module.exports = router;

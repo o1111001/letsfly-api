@@ -110,22 +110,22 @@ const validateAbout = (req, res, next) => {
   return next();
 };
 
-const validateAvatar = (req, res, next) => {
-  if (req.headers['content-type']) {
-    const verifyType = req.headers['content-type'].split('=')[0];
-    if (verifyType === 'multipart/form-data; boundary') {
-      return next();
-    } else {
-      return res.status(422).send({
-        message: 'Wrong type',
-      });
-    }
-  } else {
-    return res.status(422).send({
-      message: 'Wrong type',
-    });
-  }
-};
+const validateAvatar = (req, res, next) => next();
+// if (req.headers['content-type']) {
+//   const verifyType = req.headers['content-type'].split('=')[0];
+//   if (verifyType === 'multipart/form-data; boundary') {
+//     return next();
+//   } else {
+//     return res.status(422).send({
+//       message: 'Wrong type',
+//     });
+//   }
+// } else {
+//   return res.status(422).send({
+//     message: 'Wrong type',
+//   });
+// }
+
 
 module.exports = {
   validateGetBio,

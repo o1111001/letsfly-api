@@ -11,14 +11,12 @@ module.exports = async (data, details) => {
   const { senderId, chatId, membershipsList } = details;
   const message = await Message.create({ chatId, senderId, text, type, attachment, attachmentId, membershipsList });
   const chat = await Chat.get(chatId);
-
   const users = await MembershipsAdmin.getMembers(membershipsList);
   const sendMessage = {
     ...message,
     opponent: chat,
     chatType: chat.type,
   };
-  console.log(chat.type);
   broadcastToSetOfRooms([...users, senderId], 'message', sendMessage);
 
   return;

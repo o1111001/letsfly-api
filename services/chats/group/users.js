@@ -6,16 +6,15 @@ const getChat = async (link, userId) => {
   const chat = await Chat.getFull(link, userId || -1);
   if (!chat) return {};
   chat.messages = await Chat.getMessages(userId, chat.id);
-  console.log(123, chat.messages);
   // const files = await Chat.countAttachmentsInChat(chat.type, { chatId: chat.id, userId });
-  const files = {
-    photo: 0,
-    video: 0,
+  chat.files = {
+    photo: 1,
+    video: 2,
     audio: 0,
     audio_message: 0,
     another: 0,
   };
-  return { chat, files };
+  return chat;
 };
 
 const subscribeChat = (chatId, userId) => Chat.subcribe(chatId, userId);

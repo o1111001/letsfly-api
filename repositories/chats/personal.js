@@ -22,7 +22,7 @@ class PersonalChat {
   }
 
 
-  getPersonalChatByUserId({ senderId, receiverId, limit = 10, from }) {
+  getPersonalChatByUserId({ senderId, receiverId, limit = 30, from }) {
     return new Promise((resolve, reject) => {
       db.raw(
         `
@@ -30,7 +30,9 @@ class PersonalChat {
           select 
           m.id,
           m.text,
-          (select a.path from attachments a where a.id = m."attachmentId") as "attachment",
+          (select a.key from attachments a where a.id = m."attachmentId") as "attachment",
+          (select a.waveform from attachments a where a.id = m."attachmentId") as "waveform",
+
           m."createdAt",
           m."senderId",
           m."type",

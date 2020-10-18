@@ -43,8 +43,6 @@ class Withdraw {
     });
   }
   async updateStatus(id, status) {
-    console.log('STATUS', id, status);
-
     const trx = await promisify(db.transaction.bind(db));
     try {
       const [{ amount, userId }] = await trx('withdrawals')

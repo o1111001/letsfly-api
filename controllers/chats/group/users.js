@@ -11,9 +11,8 @@ const {
 const getChat = async req => {
   const { link } = req.params;
   const userId = (req.locals && req.locals.id) ? req.locals.id : -1;
-  console.log(link);
-  const { chat, files } = await getChatService(link, userId);
-  return responseCreator({ chat, files });
+  const chat = await getChatService(link, userId);
+  return responseCreator({ chat });
 };
 
 const subscribe = async req => {

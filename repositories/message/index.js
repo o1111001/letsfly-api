@@ -35,11 +35,11 @@ class Message {
           'type',
           'avatar',
           'name',
-          'id as chatMembershipId',
+          'id',
         );
 
       await trx('chats_memberships_messages')
-        .insert(memberships.map(({ chatMembershipId }) => ({ chatMembershipId, messageId })));
+        .insert(memberships.map(({ id }) => ({ chatMembershipId: id, messageId })));
 
       await trx.commit();
       return { id: messageId, chatId, senderId, text, attachment, createdAt, type, memberships };
@@ -63,12 +63,13 @@ class Message {
     });
   }
 
-  createAttachment({ type, attachment }) {
+  createAttachment({ type, attachment, waveform }) {
     return new Promise((resolve, reject) => {
       db('attachments')
         .insert({
-          path: attachment,
+          key: attachment,
           type,
+          waveform,
         })
         .returning(['id'])
         .then(res => resolve(res[0].id))
@@ -76,7 +77,7 @@ class Message {
     });
   }
 
-  changePublicity({ id, isPublic }) {
+  changePublicity({ id, isPublic }) { 
     return new Promise((resolve, reject) => {
       db('messages')
         .update({

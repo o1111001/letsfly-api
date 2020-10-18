@@ -19,14 +19,7 @@ const {
 } = require('../../middlewares/private_messages');
 
 router.post('/',
-  upload.fields([
-    { name: 'file',
-      maxCount: 1,
-      fileSize: 1,
-    },
-  ]),
   validateCreateMessage,
-
   authorized,
   requestWrapper(create),
 );

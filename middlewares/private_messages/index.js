@@ -18,14 +18,17 @@ const createMessageSchema = {
     'chatId': {
       'type': 'string',
     },
+    'key': {
+      'type': 'string',
+    },
   },
 };
 
 const validateCreateMessage = (req, res, next) => {
   const validationResult = v.validate(req.body, createMessageSchema);
-  if (validationResult.errors.length) {
-    return res.status(422).send({ message: 'Wrong parameters' });
-  }
+  // if (validationResult.errors.length) {
+  //   return res.status(422).send({ message: 'Wrong parameters' });
+  // }
   return next();
 };
 

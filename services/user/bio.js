@@ -78,9 +78,9 @@ const updateAbout = async (id, about) => {
   return updatedUser[0];
 };
 
-const updateAvatar = async (id, path) => {
+const updateAvatar = async (id, key) => {
   const user = new BioRepo(id);
-  const updatedUser = await user.updateAvatar(path);
+  const updatedUser = await user.updateAvatar(key);
   return updatedUser[0];
 };
 

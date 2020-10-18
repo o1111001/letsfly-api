@@ -9,15 +9,14 @@ const {
 } = require('../../../realtime/broadcast');
 
 module.exports = async (data, details) => {
-  const { text, type, attachment, attachmentId } = data;
+  const { text, type, attachment, attachmentId, waveform } = data;
   const { senderId, receiverId } = details;
 
   let { chatMembershipId, chatId } = await PersonalChat.findIdOfPersonalChat({ senderId, receiverId });
-  console.log('chatMembershipId', chatMembershipId);
   if (!chatId || !chatMembershipId) {
     ({ chatMembershipId, chatId } = await Chat.create({ type: 'personal' }, [senderId, receiverId]));
   }
-  const createdMessage = await Message.create({ chatId, senderId, text, type, attachment, attachmentId, membershipsList: [chatMembershipId] });
+  const createdMessage = await Message.create({ chatId, senderId, text, type, attachmentId, membershipsList: [chatMembershipId] });
   const [user1, user2] = await Promise.all([
     User.getUser({ id: receiverId, me: senderId }),
     User.getUser({ id: senderId, me: receiverId }),
@@ -27,9 +26,8 @@ module.exports = async (data, details) => {
     ...createdMessage,
     attachment,
     chatType: 'personal',
+    waveform,
   };
-  console.log('AAAA', await Chat.getChatByMessageId(createdMessage.id));
-  console.log(createdMessage);
 
   broadcastToRoom(receiverId, 'message', { ...message, opponent: user2 });
   broadcastToRoom(senderId, 'message', { ...message, opponent: user1 });

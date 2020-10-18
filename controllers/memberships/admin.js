@@ -22,20 +22,17 @@ const getAvatar = files => (files.avatar && files.avatar.length ? files.avatar[0
 
 const createMembership = async req => {
   const { id: adminId } = req.locals;
-  console.log('sdfsdf');
   const {
     name,
     description,
     amount,
     link,
+    avatar,
   } = req.body;
-  const avatar = getAvatar(req.files);
-  console.log(avatar);
   const chatId = await getChatIdByLink(link);
   await isChatAdmin(adminId, chatId);
 
   const isFreeName = await isFreeNameService(chatId, name);
-  console.log(isFreeName);
   if (!isFreeName) {
     throw new CustomError('Name is already in use', 409);
   }
@@ -100,13 +97,11 @@ const checkName = async req => {
     link,
     name,
   } = req.params;
-  console.log(123);
   const { id: userId } = req.locals;
   const chatId = await getChatIdByLink(link);
 
   await isChatAdmin(userId, chatId);
   const isFreeName = await isFreeNameService(chatId, name);
-  console.log(isFreeName);
   return responseCreator({ isFreeName });
 };
 

@@ -6,7 +6,7 @@ const {
 const findName = async (id, name) => {
   const user = new UserRepo();
 
-  const contactResult = await ContactsFind.findDisplayedName(id, name);
+  const contactResult = await ContactsFind.findActive(id, name);
   const globalResult = await user.findGlobalName(id, name);
   const response = {
     contacts: contactResult,

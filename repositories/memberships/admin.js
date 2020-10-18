@@ -44,7 +44,6 @@ const getMembers = async membersList => {
     where cmu."chatMembershipId" in (??)
     and cmu."endedAt" > now()
   `, [membersList]);
-  console.log(members);
   return members;
 };
 

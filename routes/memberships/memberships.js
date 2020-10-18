@@ -25,13 +25,13 @@ const {
 
 router.post('/',
   authorized,
-  upload.fields([
-    {
-      name: 'avatar',
-      maxCount: 1,
-      fileSize: 1,
-    },
-  ]),
+  // upload.fields([
+  //   {
+  //     name: 'avatar',
+  //     maxCount: 1,
+  //     fileSize: 1,
+  //   },
+  // ]),
   requestWrapper(createMembership),
 );
 

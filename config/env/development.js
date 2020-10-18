@@ -11,4 +11,12 @@ module.exports = {
   JWT_SECRET: process.env.JWT_SECRET,
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: parseInt(process.env.REDIS_PORT, 10),
+  BUCKET_NAME: process.env.BUCKET_NAME,
+
+  // WFP
+  MERCHANT_ACCOUNT: process.env.MERCHANT_ACCOUNT,
+  MERCHANT_SECRET_KEY: process.env.MERCHANT_SECRET_KEY,
+  MERCHANT_DOMAIN_NAME: process.env.MERCHANT_DOMAIN_NAME,
+
+
 };

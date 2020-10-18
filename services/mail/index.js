@@ -8,7 +8,7 @@ async function main(email, subject, text) {
     subject,
     text,
   };
-  console.log(mailOptions);
+  console.log(text);
   if (PRODUCTION) {
     const transporter = nodemailer.createTransport({
       service: 'gmail',

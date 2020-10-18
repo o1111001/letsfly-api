@@ -9,17 +9,8 @@ const response = message => ({
   },
 });
 
-const getAttachment = files => {
-  if (files && files.file && files.file[0]) {
-    return files.file[0].path;
-  }
-  return null;
-};
-
 const create = async req => {
   const { id: senderId } = req.locals;
-  const attachment = getAttachment(req.files);
-
   const {
     chatType,
     receiverId,
@@ -27,12 +18,14 @@ const create = async req => {
     text,
     type,
     membershipsList,
+    file: attachment,
+    waveform,
   } = req.body;
   const details = chatType === 'personal' ?
     { senderId, receiverId } :
-    { senderId, chatId, membershipsList: JSON.parse(membershipsList) };
+    { senderId, chatId, membershipsList };
 
-  const message = await createMessageService(chatType, { text, type, attachment }, details);
+  const message = await createMessageService(chatType, { text, type, attachment, waveform }, details);
   return response(message);
 };
 

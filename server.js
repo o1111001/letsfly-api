@@ -81,6 +81,7 @@ app.use('/api/v1/payment_services_provider', paymentServicesProvider);
 
 // static files routes
 app.use('/files', filesRoutes);
+// app.use('/admin/analytics', analyticsAdminRoutes);
 
 
 // -- need to be moved to cdn
