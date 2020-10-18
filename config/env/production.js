@@ -1,10 +1,9 @@
 const { resolve } = require('path');
-require('dotenv').config({ path: resolve(__dirname, '../../.env.production') });
+require('dotenv').config({ path: resolve(__dirname, '../../.env') });
 
 module.exports = {
+  production: true,
   PORT: process.env.PORT,
-  DB_HOST: process.env.DB_HOST,
-  DB_PORT: process.env.DB_PORT,
   DB_NAME: process.env.DB_NAME,
   DB_USER: process.env.DB_USER,
   DB_PASSWORD: process.env.DB_PASSWORD,
@@ -14,5 +13,10 @@ module.exports = {
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: parseInt(process.env.REDIS_PORT, 10),
   BUCKET_NAME: process.env.BUCKET_NAME,
-  production: true,
+
+  // WFP
+  MERCHANT_ACCOUNT: process.env.MERCHANT_ACCOUNT,
+  MERCHANT_SECRET_KEY: process.env.MERCHANT_SECRET_KEY,
+  MERCHANT_DOMAIN_NAME: process.env.MERCHANT_DOMAIN_NAME,
+
 };
