@@ -3,7 +3,7 @@ const { PRODUCTION } = require('../../config/env');
 
 async function main(email, subject, text) {
   const mailOptions = {
-    from: '"MESSAGES.GG" <messages.gg@gmail.com>',
+    from: `"MESSAGES.SOCIAL" <${process.env.EMAIL_USER}>`,
     to: email,
     subject,
     text,
