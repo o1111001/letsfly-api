@@ -54,7 +54,7 @@ app.use(bodyParser.json());
 // regular routes
 app.use('*', (req, res, next) => { console.log(req.method, req.originalUrl, req.body); return next(); });
 
-app.get('/api/health', (req, res) => res.send('Success'));
+app.get('/', (req, res) => res.send('Success'));
 app.use('/api/v1/auth', authRoutes);
 
 app.use('/api/v1/users', usersBioRoutes);
