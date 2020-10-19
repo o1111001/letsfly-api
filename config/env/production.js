@@ -15,6 +15,8 @@ module.exports = {
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: parseInt(process.env.REDIS_PORT, 10),
   BUCKET_NAME: process.env.BUCKET_NAME,
+  AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY,
+  AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
   // WFP

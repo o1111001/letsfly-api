@@ -3,7 +3,7 @@ const { production, EMAIL_USER, EMAIL_PASS } = require('../../config/env');
 
 async function main(email, subject, text) {
   const mailOptions = {
-    from: `"MESSAGES.SOCIAL" <${process.env.EMAIL_USER}>`,
+    from: `"MESSAGES.SOCIAL" <${EMAIL_USER}>`,
     to: email,
     subject,
     text,
