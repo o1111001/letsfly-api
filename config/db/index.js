@@ -18,11 +18,13 @@ const config = {
   password: DB_PASSWORD,
 };
 
-console.log('congig', config);
+console.log('congig', config, `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`);
 
 const knexDB = knex({
   client: 'pg',
-  connection: config,
+  connection: `postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}`,
+
+  // connection: ``,
   pool: { min: 2, max: 10 },
 });
 
