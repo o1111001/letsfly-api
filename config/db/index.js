@@ -18,6 +18,8 @@ const config = {
   password: DB_PASSWORD,
 };
 
+console.log('congig', config);
+
 const knexDB = knex({
   client: 'pg',
   connection: config,
