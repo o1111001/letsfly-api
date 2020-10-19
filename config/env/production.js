@@ -15,7 +15,8 @@ module.exports = {
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: parseInt(process.env.REDIS_PORT, 10),
   BUCKET_NAME: process.env.BUCKET_NAME,
-
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASS: process.env.EMAIL_PASS,
   // WFP
   MERCHANT_ACCOUNT: process.env.MERCHANT_ACCOUNT,
   MERCHANT_SECRET_KEY: process.env.MERCHANT_SECRET_KEY,

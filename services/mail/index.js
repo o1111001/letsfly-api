@@ -1,5 +1,5 @@
 const nodemailer = require('nodemailer');
-const { PRODUCTION } = require('../../config/env');
+const { production, EMAIL_USER, EMAIL_PASS } = require('../../config/env');
 
 async function main(email, subject, text) {
   const mailOptions = {
@@ -8,13 +8,12 @@ async function main(email, subject, text) {
     subject,
     text,
   };
-  console.log(text);
-  if (PRODUCTION) {
+  if (production) {
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
       },
     });
 
