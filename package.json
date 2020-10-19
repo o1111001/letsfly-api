@@ -2,7 +2,6 @@
   "name": "messages.gg_api",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
   "scripts": {
     "prestart": "node ./node_modules/knex/bin/cli.js migrate:latest",
     "bcrypt": "npm install bcrypt",
