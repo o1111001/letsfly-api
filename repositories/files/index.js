@@ -8,7 +8,7 @@ const checkAccess = async (userId, key) => {
     const { rows: [message] } = await trx.raw(`
       select m."id", m."senderId" from attachments a
       join messages m on m."attachmentId" = a.id
-      where a."key" = ?
+      where position(? in a."key") = 1
     `, [key]);
     if (message.senderId === userId) return true;
 

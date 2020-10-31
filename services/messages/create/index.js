@@ -4,24 +4,23 @@ const createGroupMessage = require('./group');
 
 const { checkAttachmentFileType } = require('../../../helpers/messages');
 
-const checkAttachment = (msgType, attachment, waveform) => {
+const checkAttachment = (msgType, attachment, filename, waveform, resolution) => {
   if (attachment) {
     const type = checkAttachmentFileType(msgType, attachment);
-    return Message.createAttachment({ attachment, type, waveform });
+    return Message.createAttachment({ attachment, type, waveform, filename, resolution });
   }
   return null;
 };
 
 module.exports = async (chatType, data, details) => {
-  const { text, type, attachment, waveform } = data;
-  // console.log({details});
-  const attachmentId = await checkAttachment(type, attachment, waveform);
+  const { text, type, attachment, filename, waveform, resolution } = data;
+  const attachmentId = await checkAttachment(type, attachment, filename, waveform, resolution);
   if (chatType === 'personal') {
-    return createPersonalMessage({ text, type, attachment, attachmentId, waveform }, details);
+    return createPersonalMessage({ text, type, attachment, attachmentId, waveform, resolution }, details);
   }
 
   if (chatType === 'group') {
-    return createGroupMessage({ text, type, attachment, attachmentId, waveform }, details);
+    return createGroupMessage({ text, type, attachment, attachmentId, waveform, resolution }, details);
   }
 
   return {};

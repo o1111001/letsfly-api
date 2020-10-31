@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt');
 const { SALT_ROUNDS } = require('../../config/env');
+const { CustomError } = require('../../helpers/errors');
 
 class Hash {
   static async generate(code) {
@@ -12,7 +13,7 @@ class Hash {
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, hash, (err, match) => {
         if (err) reject(err);
-        if (!match) return reject('Wrong credentials');
+        if (!match) return reject(new CustomError('Wrong credentials', 409));
         return resolve(true);
       });
     });

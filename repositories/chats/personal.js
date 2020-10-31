@@ -22,7 +22,7 @@ class PersonalChat {
   }
 
 
-  getPersonalChatByUserId({ senderId, receiverId, limit = 30, from }) {
+  getPersonalChatByUserId({ senderId, receiverId, limit = 15, from }) {
     return new Promise((resolve, reject) => {
       db.raw(
         `
@@ -31,6 +31,8 @@ class PersonalChat {
           m.id,
           m.text,
           (select a.key from attachments a where a.id = m."attachmentId") as "attachment",
+          (select a.resolution from attachments a where a.id = m."attachmentId") as "resolution",
+
           (select a.waveform from attachments a where a.id = m."attachmentId") as "waveform",
 
           m."createdAt",
@@ -69,7 +71,10 @@ class PersonalChat {
         `,
         [senderId, senderId, receiverId, limit],
       )
-        .then(result => resolve(result.rows))
+        .then(result => {
+          console.log(result.rows);
+          resolve(result.rows);
+        })
         .catch(err => reject(err));
     });
   }

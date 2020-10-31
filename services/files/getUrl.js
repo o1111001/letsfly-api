@@ -1,17 +1,16 @@
 const { CustomError } = require('../../helpers/errors');
 
 const {
-  S3_BUCKET_DOMAIN,
-} = require('../../config/env');
-
-const {
   checkAccess: checkAccessDB,
 } = require('../../repositories/files');
 const { getPreSignedUrl } = require('../aws_s3');
-// const public = ['avatars', 'chats_avatars', 'memberships_avatars'];
-
 const getUrl = async (userId, key) => {
-  const isHasAccess = await checkAccessDB(userId, key);
+  const checkedKey = key
+    .replace('_thumbs', '')
+    .replace('_blured', '')
+    .replace('_resized', '')
+    .split('.')[0];
+  const isHasAccess = await checkAccessDB(userId, checkedKey);
   if (isHasAccess) {
     return getPreSignedUrl(key);
   }

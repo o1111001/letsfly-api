@@ -8,11 +8,10 @@ const getChat = async (link, userId) => {
   chat.messages = await Chat.getMessages(userId, chat.id);
   // const files = await Chat.countAttachmentsInChat(chat.type, { chatId: chat.id, userId });
   chat.files = {
-    photo: 1,
-    video: 2,
-    audio: 0,
-    audio_message: 0,
-    another: 0,
+    media: { count: 1, list: [] },
+    audio: { count: 1, list: [] },
+    audio_message: { count: 1, list: [] },
+    file: { count: 1, list: [] },
   };
   return chat;
 };

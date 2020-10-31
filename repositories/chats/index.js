@@ -344,10 +344,16 @@ class Chat {
     });
   }
 
-  countAttachmentsInChat(type, details) {
-    const personal = ({ senderId, receiverId }) => db.raw(
+  getInitFiles(type, details) {
+    const personal = ({ user1, user2 }) => db.raw(
       `
-      select a."type" from attachments a
+      select 
+      a."type", 
+      a."key",
+      a."filename",
+      m."senderId" as "sender",
+      m."createdAt" as "createdAt"
+      from attachments a
       left join messages m on m."attachmentId" = a.id 
       left join chats_memberships_messages cmm on cmm."messageId" = m.id 
      	where cmm."chatMembershipId" = (
@@ -359,55 +365,86 @@ class Chat {
 	      group by cm.id
 	      having count(cm.id) = 2
 	      limit 1
-     	)
+       )
+       order by m."createdAt" desc
 
       `,
-      [senderId, receiverId],
+      [user1, user2],
     );
 
     const publicChat = ({ chatId }) => db.raw(
       `
-        select a."type" 
+        select a."type" , a."filename"
         from chats ch
         left join messages m on m."chatId" = ch.id
         left join attachments a on a.id = m."attachmentId"
-        where ch.id = ? and attachment is not null
+        where ch.id = ? and attachment is not null order by m."createdAt" desc
       `,
       [chatId],
-    );
-
-    const privateChat = ({ chatId, userId }) => db.raw(
-      `
-        select a."type" 
-        from chats ch
-        left join messages m on m."chatId" = ch.id
-        left join attachments a on a.id = m."attachmentId"
-        where ch.id = ? 
-        and m."isPublic" != (select "chatId" from chat_subscriptions cs where cs."chatId" = ch.id and cs."userId" = ?)::boolean
-        and attachment is not null
-      `,
-      [chatId, userId],
     );
 
     const defineSubquery = {
       personal: personal(details),
       public: publicChat(details),
-      private: privateChat(details),
 
     };
 
     return new Promise((resolve, reject) => {
       db.raw(
         `with files as (?) select 
-        (select count(type)::int as "photo" from files where type = 'photo'),
-        (select count(type)::int as "video" from files where type = 'video'),
-        (select count(type)::int as "audio" from files where type = 'audio'),
-        (select count(type)::int as "audio_message" from files where type = 'audio_message'),
-        (select count(type)::int as "file" from files where type = 'another')
+        (select json_build_object(
+          'count', count(type)::int,
+          'list', array_agg(
+            json_build_object(
+              'key', key,
+              'sender', "sender",
+              'filename', "filename",
+              'createdAt', "createdAt"
+            )
+          )
+        ) as "media" from files where type = 'photo' or type = 'video'),
+        (select json_build_object(
+          'count', count(type)::int,
+          'list', array_agg(
+            json_build_object(
+              'key', key,
+              'sender', "sender",
+              'filename', "filename",
+              'createdAt', "createdAt"
+
+            )
+          )
+        ) as "audio" from files where type = 'music'),
+        (select json_build_object(
+          'count', count(type)::int,
+          'list', array_agg(
+            json_build_object(
+              'key', key,
+              'sender', "sender",
+              'filename', "filename",
+              'createdAt', "createdAt"
+
+            )
+          )
+        ) as "audio_message" from files where type = 'audio_message'),
+        (select json_build_object(
+          'count', count(type)::int,
+          'list', array_agg(
+            json_build_object(
+              'key', key,
+              'sender', "sender",
+              'filename', "filename",
+              'createdAt', "createdAt"
+
+            )
+          )
+        ) as "file" from files where type = 'another')
         `,
         [defineSubquery[type]],
       )
-        .then(result => resolve(result.rows[0]))
+        .then(result => {
+          resolve(result.rows[0]);
+        })
         .catch(err => reject(err));
     });
   }
@@ -443,13 +480,24 @@ class Chat {
   }
 
   getFilesFromChat(type, fileType, details) {
+
+
+    const getFileType = {
+      'media': ['photo', 'video'],
+      'audio': ['audio'],
+      'files': ['another'],
+      'audio_message': ['audio_message'],
+    };
     const personal = ({ user1, user2 }) => db.raw(
       `
-      select "chatId" from chats_users cu
-      left join chats ch on ch.id = cu."chatId"
-      where cu."userId" in (?, ?) and ch.type = 'personal'
-      group by cu."chatId"
-      having count(cu."userId") = 2
+      select cm.id
+      from chats_memberships cm
+      left join chats ch on ch.id = cm."chatId" and ch.type = 'personal'
+      left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+      where cmu."userId" in (?, ?)
+      group by cm.id
+      having count(cm.id) = 2
+      limit 1
       `,
       [user1, user2],
     );
@@ -457,28 +505,84 @@ class Chat {
     const defineSubquery = {
       personal: personal(details),
     };
-
     return new Promise((resolve, reject) => {
       db.raw(
-        `select 
-          a.id, 
-          a.type, 
-          a."createdAt", 
-          a.key,
-          (select pm."senderId" from messages pm where pm."attachmentId" = a.id)
+        `select
+          a."id",
+          a."type",
+          a."createdAt",
+          a."key",
+          m."senderId",
+          m.id as "messageId"
         from "attachments" a
-        where "id" in (
-          select "attachmentId"
-          from "messages" 
-          where "chatId" = (?)
-        ) and "type" = ?
+        left join messages m on m."attachmentId" = a.id
+        left join chats_memberships_messages cmm on cmm."messageId" = m.id
+        where cmm."chatMembershipId" = (?) and a."type" = ANY(?)
         order by a."createdAt" desc`,
-        [defineSubquery[type], fileType],
+        [defineSubquery[type], getFileType[fileType]],
       )
-        .then(result => resolve(result.rows))
+        .then(result => {
+          resolve(result.rows);
+        })
         .catch(err => reject(err));
     });
   }
+
+  // getInitFiles(type, details) {
+  //   const personal = ({ user1, user2 }) => db.raw(
+  //     `
+  //     select cm.id
+  //     from chats_memberships cm
+  //     left join chats ch on ch.id = cm."chatId" and ch.type = 'personal'
+  //     left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+  //     where cmu."userId" in (?, ?)
+  //     group by cm.id
+  //     having count(cm.id) = 2
+  //     limit 1
+  //     `,
+  //     [user1, user2],
+  //   );
+
+  //   const defineSubquery = {
+  //     personal: personal(details),
+  //   };
+  //   return new Promise((resolve, reject) => {
+  //     db.raw(
+  //       `
+
+
+  //       with files as (?) select
+  //       (select json_build_object(
+  //         'count', count(type)::int,
+  //         'list', array_agg(key)
+  //       ) from files where type = 'photo' or type = 'video'),
+  //       (select count(type)::int as "music" from files where type = 'audio'),
+  //       (select count(type)::int as "audio_message" from files where type = 'audio_message'),
+  //       (select count(type)::int as "file" from files where type = 'another')
+
+
+
+  //       select
+  //         a."id",
+  //         a."type",
+  //         a."createdAt",
+  //         a."key",
+  //         m."senderId",
+  //         m.id as "messageId"
+  //       from "attachments" a
+  //       left join messages m on m."attachmentId" = a.id
+  //       left join chats_memberships_messages cmm on cmm."messageId" = m.id
+  //       where cmm."chatMembershipId" = (?) and a."type" = ANY(?)
+  //       order by a."createdAt" desc`,
+  //       [defineSubquery[type]],
+  //     )
+  //       .then(result => {
+  //         console.log(result.rows);
+  //         resolve(result.rows);
+  //       })
+  //       .catch(err => reject(err));
+  //   });
+  // }
 
   addAdmin({ adminId, chatId }) {
     return new Promise((resolve, reject) => {
@@ -741,7 +845,6 @@ class Chat {
         Array(8).fill(userId),
       )
         .then(result => {
-          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));

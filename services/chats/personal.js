@@ -29,6 +29,7 @@ const readMessages = async (userId, messageId) => {
 const getChats = userId => Chat.getAll({ userId });
 
 const getFiles = (chatType, fileType, details) => Chat.getFilesFromChat(chatType, fileType, details);
+const getInitFiles = (chatType, details) => Chat.getInitFiles(chatType, details);
 
 module.exports = {
   getChatByUserId,
@@ -36,4 +37,5 @@ module.exports = {
   getChats,
   getFiles,
   getCountAttachments,
+  getInitFiles,
 };

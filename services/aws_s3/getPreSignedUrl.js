@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk');
-const { AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY } = require('../../config/env');
+const { AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY, BUCKET_NAME } = require('../../config/env');
 
 const s3 = new AWS.S3({
   // endpoint: 's3-eu-central-1.amazonaws.com',
@@ -8,8 +8,6 @@ const s3 = new AWS.S3({
   signatureVersion: 'v4',
   region: 'eu-central-1',
 });
-
-const { BUCKET_NAME } = require('../../config/env');
 
 const getSignedUrl = key => s3.getSignedUrl('getObject', {
   Bucket: BUCKET_NAME,

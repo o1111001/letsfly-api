@@ -29,7 +29,7 @@ const codeSchema = {
     },
     'code': {
       'type': 'string',
-      'length': 6,
+      'length': 5,
       'required': true,
     },
   },

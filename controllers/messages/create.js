@@ -13,19 +13,20 @@ const create = async req => {
   const { id: senderId } = req.locals;
   const {
     chatType,
-    receiverId,
-    chatId,
+    destinationId,
     text,
     type,
     membershipsList,
     file: attachment,
+    filename,
     waveform,
+    resolution,
   } = req.body;
   const details = chatType === 'personal' ?
-    { senderId, receiverId } :
-    { senderId, chatId, membershipsList };
+    { senderId, receiverId: destinationId } :
+    { senderId, chatId: destinationId, membershipsList };
 
-  const message = await createMessageService(chatType, { text, type, attachment, waveform }, details);
+  const message = await createMessageService(chatType, { text, type, attachment, filename, waveform, resolution }, details);
   return response(message);
 };
 
