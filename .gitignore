@@ -112,4 +112,5 @@ storage/
 !.elasticbeanstalk/*.global.yml
 
 node_modules/
+log.txt
 .gitignore
