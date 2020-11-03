@@ -72,7 +72,7 @@ const updateMembershipInfo = async req => {
     amount,
   } = req.body;
   const { id: userId } = req.locals;
-  const [{ chatId }] = await getChatIdByMembershipId(membershipId);=
+  const [{ chatId }] = await getChatIdByMembershipId(membershipId);
   await isChatAdmin(userId, chatId);
   const id = await updateMembershipInfoService(membershipId, {
     avatar,

@@ -3,7 +3,7 @@ const { verify: Verify } = require('../repositories');
 
 const authorized = async (req, res, next) => {
   try {
-    const { id, token } = await Tokens.verifyStorage(req);=
+    const { id, token } = await Tokens.verifyStorage(req);
     const verify = new Verify(id, token);
     await verify.tokenFn();
     req.locals = {
