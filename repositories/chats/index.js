@@ -14,7 +14,7 @@ class Chat {
     });
   }
 
-  async getMessages(userId, chatId) {
+  async getMessages(userId, chatId, limit = 30) {
     const data = await db.raw(`
     select
       
@@ -22,6 +22,8 @@ class Chat {
       m."senderId",
       m."text",
       (select a."key" from attachments a where a.id = m."attachmentId") as "attachment",
+      (select a.resolution from attachments a where a.id = m."attachmentId") as "resolution",
+      (select a.waveform from attachments a where a.id = m."attachmentId") as "waveform",
       m."createdAt",
       m."type",
       (
@@ -38,16 +40,18 @@ class Chat {
     from messages m
     join chats_memberships_messages cmm on cmm."messageId" = m.id 
     join chats_memberships cm on cm.id = cmm."chatMembershipId" 
-    join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
     where cm."chatId" = ?
     and (
-      cmu."userId" = ? 
+      (select ca."adminId" from chats_admins ca where ca."chatId" = cm."chatId" and ca."adminId" = ?)::boolean
+      or cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ?)
       or cm."type" = 'standard'
-      or (select ca."adminId" from chats_admins ca where ca."chatId" = ?) = ?
+
+
     )
     group by m.id
     order by m.id desc
-    `, [chatId, userId, chatId, userId]);
+    limit ?
+    `, [chatId, userId, userId, limit]);
     return data.rows;
   }
 
@@ -61,11 +65,6 @@ class Chat {
       description,
       link,
       avatar,
-      (
-        select count(cmu.id)::int from chats_memberships_users cmu where cmu."userId" = ? and cmu."chatMembershipId" in (
-          select cm.id from chats_memberships cm where cm."chatId" = ch.id
-        )
-      )::boolean as "isMember",
       (select ca."adminId" from chats_admins ca where ca."adminId" = ? and ca."chatId" = ch.id)::boolean as "isAdmin",
       (
         select count(distinct cmu."userId") from chats_memberships_users cmu where cmu."chatMembershipId" in (
@@ -104,7 +103,7 @@ class Chat {
       from chats ch
       where ch."link" = ?
       `,
-      [userId, userId, userId, link])
+      [userId, userId, link])
         .then(res => {
           resolve(res.rows[0]);
         })
@@ -845,6 +844,7 @@ class Chat {
         Array(8).fill(userId),
       )
         .then(result => {
+          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));

@@ -1,11 +1,12 @@
 const { db } = global;
 const { CustomError } = require('../../helpers/errors');
+const promisify = require('../../helpers/promisify');
 
 const create = async fields => {
   const {
     name,
     description,
-    amount,
+    price: amount,
     chatId,
     avatar,
   } = fields;
@@ -19,7 +20,7 @@ const create = async fields => {
       avatar,
       type: 'paid',
     })
-    .returning('id');
+    .returning(['id']);
 
   return id;
 };
@@ -47,21 +48,38 @@ const getMembers = async membersList => {
   return members;
 };
 
-const updateInfo = fields => {
-  const {
-    id,
-    name,
-    description,
-    price,
-  } = fields;
-
-  return db('chats_memberships')
-    .update({
+const updateInfo = async fields => {
+  const trx = await promisify(db.transaction.bind(db));
+  try {
+    const {
+      id,
       name,
       description,
-      price,
-    })
-    .where({ id });
+      amount,
+      avatar,
+    } = fields;
+    console.log(fields);
+    const [{ type }] = await trx('chats_memberships')
+      .update({
+        name,
+        description,
+        amount,
+        avatar,
+      })
+      .where({ id })
+      .returning(['id', 'type']);
+
+    if (type !== 'paid' && amount !== 0) {
+      await trx.rollback();
+    }
+    await trx.commit();
+    return;
+  } catch (error) {
+    console.log(error);
+    await trx.rollback();
+
+  }
+
 };
 
 const deleteMembership = id => db('chats_memberships')

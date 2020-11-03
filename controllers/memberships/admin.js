@@ -25,22 +25,22 @@ const createMembership = async req => {
   const {
     name,
     description,
-    amount,
+    price,
     link,
     avatar,
   } = req.body;
   const chatId = await getChatIdByLink(link);
   await isChatAdmin(adminId, chatId);
 
-  const isFreeName = await isFreeNameService(chatId, name);
-  if (!isFreeName) {
-    throw new CustomError('Name is already in use', 409);
-  }
+  // const isFreeName = await isFreeNameService(chatId, name);
+  // if (!isFreeName) {
+  //   throw new CustomError('Name is already in use', 409);
+  // }
 
   const membershipId = await createMembershipService({
     name,
     description,
-    amount,
+    price,
     chatId,
     avatar,
   });
@@ -65,20 +65,22 @@ const updateMembershipAvatar = async req => {
 
 const updateMembershipInfo = async req => {
   const {
-    membershipId,
+    id: membershipId,
+    avatar,
     name,
     description,
-    price,
+    amount,
   } = req.body;
   const { id: userId } = req.locals;
-  const chatId = await getChatIdByMembershipId(membershipId);
+  const [{ chatId }] = await getChatIdByMembershipId(membershipId);=
   await isChatAdmin(userId, chatId);
-  await updateMembershipInfoService(membershipId, {
+  const id = await updateMembershipInfoService(membershipId, {
+    avatar,
     name,
     description,
-    price,
+    amount,
   });
-  return responseCreator();
+  return responseCreator({ membershipId: id });
 };
 
 const deleteMembership = async req => {

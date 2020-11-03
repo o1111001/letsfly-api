@@ -72,7 +72,6 @@ class PersonalChat {
         [senderId, senderId, receiverId, limit],
       )
         .then(result => {
-          console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));

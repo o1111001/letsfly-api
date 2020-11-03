@@ -122,6 +122,8 @@ class Bio {
   }
   checkUsername(username) {
     const { id } = this;
+    if (!username) return false;
+
     return new Promise((resolve, reject) => {
       db('users')
         .where({ username })
@@ -133,6 +135,7 @@ class Bio {
 
   checkPhone(phone) {
     const { id } = this;
+    if (!phone) return false;
     return new Promise((resolve, reject) => {
       db('users')
         .where({ phone })
@@ -143,10 +146,19 @@ class Bio {
   }
   updateFullBio({ firstName, lastName, phone, username, about }) {
     const { id } = this;
+
+    const data = {
+      firstName: firstName || null,
+      lastName: lastName || null,
+      phone: phone || null,
+      username: username || null,
+      about: about || null,
+    };
+
     return new Promise((resolve, reject) => {
       db('users')
         .where({ id })
-        .update({ firstName, lastName, phone, username, about })
+        .update(data)
         .then(res => resolve(res))
         .catch(err => reject(err));
     });

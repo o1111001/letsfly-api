@@ -15,7 +15,7 @@ const {
 const {
   createMembership,
   updateAvatar,
-  changeMembership,
+  updateMembershipInfo,
   deleteMembership,
   checkName,
 } = require('../../controllers/memberships/admin');
@@ -49,7 +49,7 @@ router.put('/avatar',
 
 router.put('/',
   authorized,
-  requestWrapper(changeMembership),
+  requestWrapper(updateMembershipInfo),
 );
 
 router.delete('/',
