@@ -16,7 +16,10 @@ class PersonalChat {
       limit 1
       `,
       [senderId, receiverId])
-        .then(result => resolve(result.rows.length && result.rows[0] ? result.rows[0] : { chatMembershipId: null, chatId: null }))
+        .then(result => {
+          console.log(result.rows);
+          resolve(result.rows.length && result.rows[0] ? result.rows[0] : { chatMembershipId: null, chatId: null });
+        })
         .catch(err => reject(err));
     });
   }
