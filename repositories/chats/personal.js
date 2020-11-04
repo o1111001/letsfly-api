@@ -8,12 +8,13 @@ class PersonalChat {
       db.raw(`
       select cm.id as "chatMembershipId", cm."chatId"
       from chats_memberships cm
-      left join chats ch on ch.id = cm."chatId" and ch.type = 'personal'
-      left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+      join chats ch on ch.id = cm."chatId"
+      join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
       where cmu."userId" in (?, ?)
+      and ch.type = 'personal'
       group by cm.id
       having count(cm.id) = 2
-      limit 1
+      limit 1;
       `,
       [senderId, receiverId])
         .then(result => {
@@ -56,9 +57,10 @@ class PersonalChat {
             where cmm."chatMembershipId" = (
               select cm.id
               from chats_memberships cm
-              left join chats ch on ch.id = cm."chatId" and ch.type = 'personal'
-              left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+              join chats ch on ch.id = cm."chatId"
+              join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
               where cmu."userId" in (?, ?)
+              and ch.type = 'personal'
               group by cm.id
               having count(cm.id) = 2
               limit 1
