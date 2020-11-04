@@ -125,6 +125,9 @@ class Chat {
           type: 'standard',
         })
         .returning('id');
+
+      let message;
+
       if (type === 'group') {
         const [{ id: messageId }] = await trx('messages')
           .insert({
@@ -137,6 +140,26 @@ class Chat {
             messageId,
             chatMembershipId,
           });
+
+        message = {
+          attachment: null,
+          chatId,
+          chatType: 'group',
+          count: 0,
+          createdAt: new Date(),
+          isRead: true,
+          senderId: -1,
+          text: 'Chat has been created',
+          type: 'text',
+          opponent: {
+            avatar: null,
+            description,
+            id: chatId,
+            link,
+            name,
+            type,
+          },
+        };
       }
 
       if (usersList.length || adminId) {
@@ -162,7 +185,7 @@ class Chat {
       }
 
       await trx.commit();
-      return { chatId, chatMembershipId };
+      return message || { chatId, chatMembershipId };
     } catch (e) {
       console.log(e);
       await trx.rollback('Internal server error');
