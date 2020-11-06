@@ -1,4 +1,5 @@
 const { db } = global;
+
 const promisify = require('../../helpers/promisify');
 const { CustomError } = require('../../helpers/errors');
 class Chat {
@@ -14,8 +15,8 @@ class Chat {
     });
   }
 
-  async getMainChatInfo(id) {
-    const data = await db.raw(`
+  async getMainChatInfo(id, trx) {
+    const data = await (trx || db).raw(`
     select 
       ch.id as "chatId",
       ch."name",
@@ -29,8 +30,8 @@ class Chat {
 
   }
 
-  async getMessages(userId, chatId, limit = 30) {
-    const data = await db.raw(`
+  async getMessages(userId = 0, chatId, limit = 30, trx) {
+    const data = await (trx || db).raw(`
     select
       
       m."id",
@@ -58,15 +59,15 @@ class Chat {
     where cm."chatId" = ?
     and (
       (select ca."adminId" from chats_admins ca where ca."chatId" = cm."chatId" and ca."adminId" = ?)::boolean
-      or cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ?)
-      or cm."type" = 'standard'
+      or (? != 0  and cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ?))
+      or (? = 0 and cm."type" = 'standard')
 
 
     )
     group by m.id
     order by m.id desc
     limit ?
-    `, [chatId, userId, userId, limit]);
+    `, [chatId, userId, userId, userId, userId,  limit]);
     return data.rows;
   }
 
@@ -319,7 +320,7 @@ class Chat {
     const trx = await promisify(db.transaction.bind(db));
     try {
 
-      const [{ type }] = await trx('chats_memberships').select('type').where({ id: chatMembershipId });
+      const [{ type, chatId }] = await trx('chats_memberships').select(['type', 'chatId']).where({ id: chatMembershipId });
       if (type === 'standard') {
         await db('chats_memberships_users')
           .where({
@@ -328,8 +329,11 @@ class Chat {
           })
           .del();
       }
+
+      const messages = await this.getMessages(userId, chatId, 30, trx);
+      const opponent = await this.getMainChatInfo(chatId, trx);
       await trx.commit();
-      return;
+      return { messages, opponent };
     } catch (error) {
       console.log(error);
       await trx.rollback('Internal server error');

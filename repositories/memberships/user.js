@@ -1,12 +1,12 @@
 const { db } = global;
 const { CustomError } = require('../../helpers/errors');
-const {getMessages, getMainChatInfo} = require('../chats');
+const { getMessages, getMainChatInfo } = require('../chats');
 const promisify = require('../../helpers/promisify');
 
 const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => {
   const trx = await promisify(db.transaction.bind(db));
   try {
-    const [ membership ] = await db('chats_memberships').where({ id: chatMembershipId });
+    const [ membership ] = await trx('chats_memberships').where({ id: chatMembershipId });
     if (membership.type === 'standard') {
       const subscribs = await trx('chats_memberships_users')
         .select('id')
@@ -77,8 +77,8 @@ const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => 
         });
 
     }
-    const messages =  await getMessages(userId, membership.chatId);
-    const opponent = await getMainChatInfo(membership.chatId);
+    const messages =  await getMessages(userId, membership.chatId, 30, trx);
+    const opponent = await getMainChatInfo(membership.chatId, trx);
     await trx.commit();
     return { messages, opponent };
   } catch (error) {

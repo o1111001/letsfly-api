@@ -10,7 +10,7 @@ const {
 
 const getChat = async req => {
   const { link } = req.params;
-  const userId = (req.locals && req.locals.id) ? req.locals.id : -1;
+  const userId = (req.locals && req.locals.id) ? req.locals.id : 0;
   const chat = await getChatService(link, userId);
   return responseCreator({ chat });
 };
@@ -32,8 +32,8 @@ const privateSubscribe = async req => {
 const leaveChat = async req => {
   const { id } = req.body;
   const { id: userId } = req.locals;
-  await leaveChatService(id, userId);
-  return responseCreator();
+  const data = await leaveChatService(id, userId);
+  return responseCreator(data);
 };
 const declineInvite = async req => {
   const { chatId } = req.body;
