@@ -6,7 +6,6 @@ const router = express.Router();
 const authorized = require('../../policies/authorized');
 
 const { requestWrapper } = require('../../helpers/errors');
-const upload = require('../../services/files/memberships');
 
 const {
   subscribeMembership,
@@ -37,13 +36,6 @@ router.post('/',
 
 router.put('/avatar',
   authorized,
-  upload.fields([
-    {
-      name: 'avatar',
-      maxCount: 1,
-      fileSize: 1,
-    },
-  ]),
   requestWrapper(updateAvatar),
 );
 

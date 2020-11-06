@@ -5,7 +5,6 @@ const router = express.Router();
 
 const authorized = require('../../policies/authorized');
 
-const upload = require('../../services/files/private_messages/uploadFiles');
 const { requestWrapper } = require('../../helpers/errors');
 
 const {

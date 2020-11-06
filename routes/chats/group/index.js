@@ -7,7 +7,6 @@ const authorized = require('../../../policies/authorized');
 const authorizedNotThrowable = require('../../../policies/authorizedNotThrowable');
 
 const { requestWrapper } = require('../../../helpers/errors');
-const upload = require('../../../services/files/chats/avatars');
 
 const {
   createChat,
@@ -37,13 +36,6 @@ const {
 
 router.post('/',
   authorized,
-  upload.fields([
-    {
-      name: 'avatar',
-      maxCount: 1,
-      fileSize: 1,
-    },
-  ]),
   requestWrapper(createChat),
 );
 
@@ -99,13 +91,6 @@ router.get('/check_link/:link',
 
 router.put('/avatar',
   authorized,
-  upload.fields([
-    {
-      name: 'avatar',
-      maxCount: 1,
-      fileSize: 1,
-    },
-  ]),
   requestWrapper(updateAvatar),
 );
 
