@@ -42,7 +42,7 @@ class Payments {
   async updateStatus({ order, status }) {
     const trx = await promisify(db.transaction.bind(db));
     try {
-      const [userId, amount] = await db('payments')
+      const [userId, amount] = await trx('payments')
         .update({
           status,
         })
