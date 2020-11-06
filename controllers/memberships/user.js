@@ -20,12 +20,12 @@ const subscribeMembership = async req => {
   // const chatId = getChatIdByMembershipId(membershipId);
   // await isMember({ userId, chatId });
 
-  await subscribeMembershipService({
+  const data = await subscribeMembershipService({
     userId,
     membershipId,
     period,
   });
-  return responseCreator({ membershipId });
+  return responseCreator(data);
 };
 
 module.exports = {

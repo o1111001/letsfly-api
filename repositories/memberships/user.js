@@ -1,6 +1,6 @@
 const { db } = global;
 const { CustomError } = require('../../helpers/errors');
-
+const {getMessages, getMainChatInfo} = require('../chats');
 const promisify = require('../../helpers/promisify');
 
 const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => {
@@ -77,9 +77,10 @@ const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => 
         });
 
     }
-
+    const messages =  await getMessages(userId, membership.chatId);
+    const opponent = await getMainChatInfo(membership.chatId);
     await trx.commit();
-    return {};
+    return { messages, opponent };
   } catch (error) {
     await trx.rollback(error);
     throw new CustomError(error.message || error, error.status);

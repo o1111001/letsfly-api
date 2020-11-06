@@ -14,6 +14,21 @@ class Chat {
     });
   }
 
+  async getMainChatInfo(id) {
+    const data = await db.raw(`
+    select 
+      ch.id as "chatId",
+      ch."name",
+      ch."type",
+      ch."description",
+      ch."link",
+      ch."avatar"
+    from chats ch where id = ?`,
+    [id]);
+    return data.rows[0];
+
+  }
+
   async getMessages(userId, chatId, limit = 30) {
     const data = await db.raw(`
     select
@@ -788,7 +803,7 @@ class Chat {
             left join chats_memberships_messages cmm on cmm."chatMembershipId" = cm."id"
             left join chats c on c.id = cm."chatId" 
             where (select ca."adminId" from chats_admins ca where ca."chatId" = c."id" and ca."adminId" = ?)::boolean
-            or cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ?)
+            or cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ? and cmu."endedAt" > now())
             group by c.id
         ) select
           ml."chatId",
@@ -835,11 +850,10 @@ class Chat {
           (
             with is_read as (
               select distinct cmm."messageId" as "id", mir."isRead" from messages m2
-              left join chats_memberships_messages cmm on cmm."messageId" = m2.id
+              join chats_memberships_messages cmm on cmm."messageId" = m2.id
 
-              left join chats_memberships cm on cm.id = cmm."chatMembershipId" 
-
-              left join messages_is_read mir on mir."messageId" = cmm."messageId" and mir."userId" = ?
+              join chats_memberships cm on cm.id = cmm."chatMembershipId" 
+              join messages_is_read mir on mir."messageId" = cmm."messageId" and mir."userId" = ?
               where cm."chatId" = c.id and m2."senderId" != ?
             ) select count(ir.id)::int
             from is_read ir
