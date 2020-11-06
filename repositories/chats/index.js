@@ -796,15 +796,28 @@ class Chat {
       db.raw(
         `with messages_list as (
           select 
-            max(cmm."messageId") as "messageId", 
-            max(cm."chatId") as "chatId", 
-            max(cm."id") as "chatMembershipId"
-            from chats_memberships cm 
-            left join chats_memberships_messages cmm on cmm."chatMembershipId" = cm."id"
-            left join chats c on c.id = cm."chatId" 
-            where (select ca."adminId" from chats_admins ca where ca."chatId" = c."id" and ca."adminId" = ?)::boolean
-            or cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ? and cmu."endedAt" > now())
-            group by c.id
+
+          max(m."id") as "messageId",
+          max(cm."chatId") as "chatId",
+          max(cm."id") as "chatMembershipId"
+          
+          from messages m
+          join chats_memberships_messages cmm on cmm."messageId" = m.id
+          join chats_memberships cm on cm.id = cmm."chatMembershipId"
+          join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+          
+          where (select ca."adminId" from chats_admins ca where ca."chatId" = cm."chatId" and ca."adminId" = ?)::boolean -- check admin status
+          or cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ? and cmu."endedAt" > now())
+          or (m."senderId" = -1 and ( 
+              select c2.id from chats c2
+              join chats_memberships cm2 on cm2."chatId" = c2.id
+              join chats_memberships_users cmu2 on cmu2."chatMembershipId" = cm2.id
+              where cmu2."userId" = 41 and c2.id = cm."chatId"
+              group by c2."id"
+            ) ::boolean
+          )
+          group by cm."chatId" 
+          
         ) select
           ml."chatId",
           m."text",
