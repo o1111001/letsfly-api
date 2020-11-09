@@ -16,7 +16,6 @@ const create = async req => {
   const { id } = req.locals;
   const { amount, cardNumber, comment } = req.body;
   const result = await createWithdrawService(id, amount, cardNumber, comment);
-  console.log(result);
   return response(result);
 };
 

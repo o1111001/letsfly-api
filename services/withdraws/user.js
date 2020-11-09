@@ -8,9 +8,7 @@ const create = async (id, amount, cardNumber, comment) => {
     // throw new CustomError('Insufficient funds', 505);
   }
   const withdrawals = new WithdrawalsRepo();
-  const data = await withdrawals.create(id, amount, cardNumber, comment);
-  console.log(data);
-  return;
+  return withdrawals.create(id, amount, cardNumber, comment);
 };
 
 const withdrawsList = async id => {

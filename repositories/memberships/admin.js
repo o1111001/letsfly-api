@@ -58,7 +58,6 @@ const updateInfo = async fields => {
       amount,
       avatar,
     } = fields;
-    console.log(fields);
     const [{ type }] = await trx('chats_memberships')
       .update({
         name,
