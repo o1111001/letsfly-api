@@ -52,13 +52,13 @@ const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => 
         ("userId", "amount", "chatMembershipId", "createdAt", "endedAt")
         values
         (?, ?, ?, ?, ? + (interval '30 days') * ?)
-        returning amount as "userPaid", amount / 2 as "adminGet"
+        returning amount as "userPaid", amount * 0.8 as "adminGet"
       ` : `
         insert into chats_memberships_users 
         ("userId", "amount", "chatMembershipId", "createdAt", "endedAt")
         values
         (?, ?, ?, now(), now() + (interval '30 days') * ?)
-        returning amount as "userPaid", amount / 2 as "adminGet"
+        returning amount as "userPaid", amount * 0.8 as "adminGet"
       `;
 
       const { rows: [{ userPaid, adminGet }] } = await trx
