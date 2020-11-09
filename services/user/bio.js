@@ -5,13 +5,10 @@ const {
 } = require('../../repositories/contacts');
 const getBio = async (id, me) => {
   const user = new BioRepo(id);
-  let bio;
-  console.log({id, me});
   if (+id === +me) {
-    bio = await user.get(me);
-    console.log(bio);
+    return user.get(me);
   } else {
-    bio = await user.get(me);
+    const bio = await user.get(me);
     bio.balance = undefined;
     bio.isAdmin = undefined;
     bio.waitWithdraw = undefined;
@@ -20,8 +17,8 @@ const getBio = async (id, me) => {
       bio.displayedFirstName = displayedFirstName;
       bio.displayedLastName = displayedLastName;
     }
+    return bio;
   }
-  return bio;
 };
 
 const updateFullBio = async (id, { firstName, lastName, phone, username, about }) => {

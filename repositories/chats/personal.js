@@ -18,7 +18,6 @@ class PersonalChat {
       `,
       [senderId, receiverId])
         .then(result => {
-          console.log(result.rows);
           resolve(result.rows.length && result.rows[0] ? result.rows[0] : { chatMembershipId: null, chatId: null });
         })
         .catch(err => reject(err));

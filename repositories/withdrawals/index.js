@@ -188,7 +188,6 @@ class Withdraw {
     `,
     [userId, userId, userId, userId],
     );
-    console.log(list);
     return list;
   }
 }
