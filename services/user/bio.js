@@ -6,8 +6,10 @@ const {
 const getBio = async (id, me) => {
   const user = new BioRepo(id);
   let bio;
-  if (id === me) {
+  console.log({id, me});
+  if (+id === +me) {
     bio = await user.get(me);
+    console.log(bio);
   } else {
     bio = await user.get(me);
     bio.balance = undefined;
