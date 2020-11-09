@@ -12,9 +12,11 @@ class Bio {
         `SELECT "u"."id"::int, "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline", 
         (select "c"."userId"::boolean from contacts c where "c"."userId" = ? and "c"."contact" = ?) as "contact",
         (select "a"."userId"::boolean from admins a where "a"."userId" = ?) as "isAdmin",
-        (select "b"."balance" from user_balance b where "b"."userId" = ?) as "balance"
+        (select "b"."balance" -  (select sum(w.amount) as "waitWithdraw" from withdrawals w where w."userId" = ? and w.status = 'requested' ) from user_balance b where "b"."userId" = ?) as "balance",
+        (select sum(w.amount) as "waitWithdraw" from withdrawals w where w."userId" = ? and w.status = 'requested' )
+
         FROM users u WHERE "u"."id" = ?`,
-        [me, id, me, me, id])
+        [me, id, me, me, me, me, id])
         .then(result => {
           if (result.rows.length) return resolve(result.rows[0]);
           return reject('User does not exist');

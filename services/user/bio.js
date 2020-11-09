@@ -12,7 +12,7 @@ const getBio = async (id, me) => {
     bio = await user.get(me);
     bio.balance = undefined;
     bio.isAdmin = undefined;
-
+    bio.waitWithdraw = undefined;
     if (bio.contact) {
       const { displayedFirstName, displayedLastName } = await user.getUser({ id, me });
       bio.displayedFirstName = displayedFirstName;

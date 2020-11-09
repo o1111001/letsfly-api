@@ -65,9 +65,9 @@ class Payments {
     }
   }
 
-  checkBalance(userId) {
+  checkBalance(userId, trx) {
     return new Promise((resolve, reject) => {
-      db('user_balance')
+      (trx || db)('user_balance')
         .where({
           userId,
         })

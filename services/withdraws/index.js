@@ -1,16 +1,15 @@
-const PaymentsRepo = require('../../repositories/payments');
+const payments = require('../../repositories/payments');
 const WithdrawalsRepo = require('../../repositories/withdrawals');
 const { CustomError } = require('../../helpers/errors');
 
 const withdraw = async (id, amount, cardNumber, comment) => {
-  const payments = new PaymentsRepo();
-  const balance = await payments.checkBalance(id);
-  if (!balance || balance.balance < amount) {
-    throw new CustomError('Insufficient funds', 505);
-  }
-  const withdrawals = new WithdrawalsRepo();
-  await withdrawals.create(id, amount, cardNumber, comment);
-  return;
+  // const balance = await payments.checkBalance(id);
+  // if (!balance || balance.balance < amount) {
+  //   throw new CustomError('Insufficient funds', 505);
+  // }
+  // const withdrawals = new WithdrawalsRepo();
+  // await withdrawals.create(id, amount, cardNumber, comment);
+  // return;
 };
 
 const changeStatus = async (id, status) => {
