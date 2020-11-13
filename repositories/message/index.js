@@ -63,7 +63,7 @@ class Message {
     });
   }
 
-  createAttachment({ type, attachment, waveform, filename, resolution }) {
+  createAttachment({ type, attachment, waveform, filename, resolution, duration }) {
     return new Promise((resolve, reject) => {
       db('attachments')
         .insert({
@@ -72,6 +72,7 @@ class Message {
           waveform,
           filename,
           resolution,
+          duration,
         })
         .returning(['id'])
         .then(res => resolve(res[0].id))

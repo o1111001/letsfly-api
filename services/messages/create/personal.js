@@ -9,7 +9,7 @@ const {
 } = require('../../../realtime/broadcast');
 
 module.exports = async (data, details) => {
-  const { text, type, attachment, attachmentId, waveform, resolution } = data;
+  const { text, type, attachment, attachmentId, waveform, resolution, duration } = data;
   const { senderId, receiverId } = details;
 
   let { chatMembershipId, chatId } = await PersonalChat.findIdOfPersonalChat({ senderId, receiverId });
@@ -28,6 +28,7 @@ module.exports = async (data, details) => {
     chatType: 'personal',
     waveform,
     resolution,
+    duration,
   };
 
   broadcastToRoom(receiverId, 'message', { ...message, opponent: user2 });

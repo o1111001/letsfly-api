@@ -39,6 +39,7 @@ class Chat {
       m."text",
       (select a."key" from attachments a where a.id = m."attachmentId") as "attachment",
       (select a.resolution from attachments a where a.id = m."attachmentId") as "resolution",
+      (select a.duration from attachments a where a.id = m."attachmentId") as "duration",
       (select a.waveform from attachments a where a.id = m."attachmentId") as "waveform",
       m."createdAt",
       m."type",
@@ -391,6 +392,7 @@ class Chat {
       select 
       a."type", 
       a."key",
+      a."duration",
       a."filename",
       m."senderId" as "sender",
       m."createdAt" as "createdAt"
@@ -439,6 +441,7 @@ class Chat {
           'list', array_agg(
             json_build_object(
               'key', key,
+              'duration', duration,
               'sender', "sender",
               'filename', "filename",
               'createdAt', "createdAt"
@@ -451,6 +454,7 @@ class Chat {
             json_build_object(
               'key', key,
               'sender', "sender",
+              'duration', duration,
               'filename', "filename",
               'createdAt', "createdAt"
 
@@ -463,6 +467,7 @@ class Chat {
             json_build_object(
               'key', key,
               'sender', "sender",
+              'duration', duration,
               'filename', "filename",
               'createdAt', "createdAt"
 
@@ -553,6 +558,7 @@ class Chat {
         `select
           a."id",
           a."type",
+          a."duration",
           a."createdAt",
           a."key",
           m."senderId",
@@ -565,6 +571,7 @@ class Chat {
         [defineSubquery[type], getFileType[fileType]],
       )
         .then(result => {
+          console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));
