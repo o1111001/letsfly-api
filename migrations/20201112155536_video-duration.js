@@ -3,6 +3,6 @@ exports.up = knex => knex.schema.alterTable('attachments', t => {
 });
 
 exports.down = knex => knex.schema.alterTable('attachments', t => {
-  t.integer('duration');
+  t.dropColumn('duration');
 });
 

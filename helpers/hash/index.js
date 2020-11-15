@@ -13,7 +13,7 @@ class Hash {
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, hash, (err, match) => {
         if (err) reject(err);
-        if (!match) return reject(new CustomError('Wrong credentials', 409));
+        if (!match) return resolve(false);
         return resolve(true);
       });
     });

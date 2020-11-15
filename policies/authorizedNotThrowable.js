@@ -1,11 +1,8 @@
 const Tokens = require('../helpers/tokens');
-const { verify: Verify } = require('../repositories');
 
 const authorizedNotThrowable = async (req, res, next) => {
   try {
-    const { id, token } = await Tokens.verifyStorage(req);
-    const verify = new Verify(id, token);
-    await verify.tokenFn();
+    const { id } = await Tokens.verifyStorage(req);
     req.locals = {
       id,
     };

@@ -2,7 +2,7 @@ const Tokens = require('../helpers/tokens');
 
 const authorized = async (req, res, next) => {
   try {
-    const { id } = await Tokens.verifyStorage(req);
+    const { id } = await Tokens.verifyRefreshToken(req);
 
     req.locals = {
       id,

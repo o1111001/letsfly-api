@@ -571,7 +571,6 @@ class Chat {
         [defineSubquery[type], getFileType[fileType]],
       )
         .then(result => {
-          console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));
