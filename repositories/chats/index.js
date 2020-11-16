@@ -41,6 +41,8 @@ class Chat {
       (select a.resolution from attachments a where a.id = m."attachmentId") as "resolution",
       (select a.duration from attachments a where a.id = m."attachmentId") as "duration",
       (select a.waveform from attachments a where a.id = m."attachmentId") as "waveform",
+      (select a."originalName" from attachments a where a.id = m."attachmentId") as "originalName",
+
       m."createdAt",
       m."type",
       (

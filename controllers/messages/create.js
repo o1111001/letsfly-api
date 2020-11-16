@@ -22,12 +22,13 @@ const create = async req => {
     waveform,
     resolution,
     duration,
+    originalName,
   } = req.body;
   const details = chatType === 'personal' ?
     { senderId, receiverId: destinationId } :
     { senderId, chatId: destinationId, membershipsList };
 
-  const message = await createMessageService(chatType, { text, type, attachment, filename, waveform, resolution, duration }, details);
+  const message = await createMessageService(chatType, { text, type, attachment, filename, waveform, resolution, duration, originalName }, details);
   return response(message);
 };
 
