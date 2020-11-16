@@ -63,9 +63,8 @@ class Tokens {
   }
 
   static async verifyRefreshToken(req) {
-    if (!req.cookies || !req.cookies.refresh) throw new CustomError('Unauthorized', 403);
+    if (!req.cookies || !req.cookies.refresh) throw new CustomError('Unauthorized', 422);
     const token = req.cookies.refresh;
-    if (!token) throw new CustomError('Unauthorized', 403);
     const { id } = await jwt.verify(token, JWT_SECRET_REFRESH);
 
     const tokenData = await getUserOfRefreshToken(token);

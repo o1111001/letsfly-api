@@ -16,7 +16,7 @@ const wrongResponse = () => ({
 
 module.exports = async (req, res) => {
   if (!req.cookies || !req.cookies.refresh || !req.body || !req.body.fingerprint) {
-    return res.send(wrongResponse()).status(422);
+    return res.status(422).send(wrongResponse());
   }
 
   const { id } = req.locals;
