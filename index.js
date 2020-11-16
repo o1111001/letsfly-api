@@ -39,12 +39,21 @@ const {
 
 const { globalErrorHandler } = require('./helpers/errors');
 
-app.use(cors());
+const whitelist = ['https://www.messages.social', 'http://localhost:3000'];
+const corsOptions = {
+  origin(origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
-// app.use(cors({
-//   origin: 'http://localhost:3000',
-//   credentials: true,
-// }));
+
 app.use(cookieParser());
 app.disable('x-powered-by');
 
