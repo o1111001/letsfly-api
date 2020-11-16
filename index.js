@@ -39,7 +39,7 @@ const {
 
 const { globalErrorHandler } = require('./helpers/errors');
 
-// app.use(cors());
+app.use(cors());
 app.use(express.json());
 // app.use(cors({
 //   origin: 'http://localhost:3000',
