@@ -7,7 +7,7 @@ const {
 } = require('../../../realtime/broadcast');
 
 module.exports = async (data, details) => {
-  const { text, type, attachment, attachmentId, waveform, resolution, duration } = data;
+  const { text, type, attachment, attachmentId, waveform, resolution, duration, originalName } = data;
   const { senderId, chatId, membershipsList } = details;
   const message = await Message.create({ chatId, senderId, text, type, attachment, attachmentId, membershipsList });
   const chat = await Chat.get(chatId);
@@ -19,6 +19,7 @@ module.exports = async (data, details) => {
     waveform,
     resolution,
     duration,
+    originalName,
   };
   broadcastToSetOfRooms([...users, senderId], 'message', sendMessage);
 
