@@ -68,10 +68,10 @@ const replaceToken = async (userId, clientRefreshToken, access, refresh, fingerp
       })
       .del();
 
-    if (fingerprintFromDB !== fingerprint) {
-      await trx.commit();
-      return new CustomError('Wrong credentials', 403);
-    }
+    // if (fingerprintFromDB !== fingerprint) {
+    //   await trx.commit();
+    //   return new CustomError('Wrong credentials', 403);
+    // }
 
     await trx('tokens')
       .insert({

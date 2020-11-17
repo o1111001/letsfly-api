@@ -824,7 +824,7 @@ class Chat {
               select c2.id from chats c2
               join chats_memberships cm2 on cm2."chatId" = c2.id
               join chats_memberships_users cmu2 on cmu2."chatMembershipId" = cm2.id
-              where cmu2."userId" = 41 and c2.id = cm."chatId"
+              where cmu2."userId" = ? and c2.id = cm."chatId"
               group by c2."id"
             ) ::boolean
           )
@@ -905,7 +905,7 @@ class Chat {
           left join chats c on c.id = ml."chatId"
           order by m."createdAt" desc                                                                                                                                                                                                                                                                                                     
         `,
-        Array(8).fill(userId),
+        Array(9).fill(userId),
       )
         .then(result => {
           // console.log(result.rows);
