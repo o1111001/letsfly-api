@@ -20,8 +20,8 @@ const getChats = async req => {
 
 const readMessagesInChat = async req => {
   const { id: userId } = req.locals;
-  const { id: chatId } = req.params;
-  const list = await readMessagesService(userId, chatId);
+  const { id: messageId } = req.params;
+  const list = await readMessagesService(userId, messageId);
   return response(list);
 };
 

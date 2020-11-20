@@ -11,9 +11,12 @@ const addContactSchema = {
       'type': 'number',
       'required': true,
     },
-    'name': {
+    'displayedFirstName': {
       'type': 'string',
       'required': true,
+    },
+    'displayedLastName': {
+      'type': 'string',
     },
   },
 };

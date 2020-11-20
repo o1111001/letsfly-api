@@ -12,9 +12,11 @@ class Bio {
         `SELECT "u"."id"::int, "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline", 
         (select "c"."userId"::boolean from contacts c where "c"."userId" = ? and "c"."contact" = ?) as "contact",
         (select "a"."userId"::boolean from admins a where "a"."userId" = ?) as "isAdmin",
-        (select "b"."balance" from user_balance b where "b"."userId" = ?) as "balance"
+        (select "b"."balance"::numeric -  (select coalesce(sum(w.amount), 0) as "waitWithdraw" from withdrawals w where w."userId" = ? and w.status = 'requested' ) from user_balance b where "b"."userId" = ?) as "balance",
+        (select coalesce(sum(w.amount), 0) as "waitWithdraw" from withdrawals w where w."userId" = ? and w.status = 'requested' )
+
         FROM users u WHERE "u"."id" = ?`,
-        [me, id, me, me, id])
+        [me, id, me, me, me, me, id])
         .then(result => {
           if (result.rows.length) return resolve(result.rows[0]);
           return reject('User does not exist');
@@ -27,8 +29,6 @@ class Bio {
   getUser({ id, me }) {
     return new Promise((resolve, reject) => {
       db.raw(`
-      
-      
       SELECT 
       "u"."id"::int, 
       "u"."username", 
@@ -41,12 +41,13 @@ class Bio {
       "u"."isOnline", 
       "u"."lastOnline",
       (select c."displayedFirstName" from contacts c where c.contact = u.id and c."userId" = ?),
-      (select c."displayedLastName" from contacts c where c.contact = u.id and c."userId" = ?)
+      (select c."displayedLastName" from contacts c where c.contact = u.id and c."userId" = ?),
+      (select concat(c."displayedFirstName", ' ', c."displayedLastName") as "displayedName" from contacts c where (c."userId" = ? and c.contact = u.id) )
 
       FROM users u
       where u.id = ?
       `,
-      [+me, +me, +id])
+      [+me, +me, +me, +id])
         .then(result => {
           if (result.rows.length) return resolve(result.rows[0]);
           return reject(new CustomError('User does not exist', 422));
@@ -123,6 +124,8 @@ class Bio {
   }
   checkUsername(username) {
     const { id } = this;
+    if (!username) return false;
+
     return new Promise((resolve, reject) => {
       db('users')
         .where({ username })
@@ -134,6 +137,7 @@ class Bio {
 
   checkPhone(phone) {
     const { id } = this;
+    if (!phone) return false;
     return new Promise((resolve, reject) => {
       db('users')
         .where({ phone })
@@ -144,10 +148,19 @@ class Bio {
   }
   updateFullBio({ firstName, lastName, phone, username, about }) {
     const { id } = this;
+
+    const data = {
+      firstName: firstName || null,
+      lastName: lastName || null,
+      phone: phone || null,
+      username: username || null,
+      about: about || null,
+    };
+
     return new Promise((resolve, reject) => {
       db('users')
         .where({ id })
-        .update({ firstName, lastName, phone, username, about })
+        .update(data)
         .then(res => resolve(res))
         .catch(err => reject(err));
     });

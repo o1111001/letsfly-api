@@ -2,16 +2,19 @@ const { signUp: SignUpRepo } = require('../../repositories');
 const sendMail = require('../mail');
 const Hash = require('../../helpers/hash');
 const generateCode = require('../../helpers/random');
+const Code = require('../../repositories/auth/code');
 
 const signUp = async email => {
   const newUser = new SignUpRepo(email);
-  const userExists = await newUser.checkExists();
-  if (!userExists || !userExists[0]) {
-    await newUser.create();
+  let user = await newUser.checkExists();
+  if (!user || !user[0]) {
+    user = await newUser.create();
   }
+
+  const [{ id }] = user;
   const code = generateCode();
   const hash = await Hash.generate(code);
-  await newUser.addCode(hash);
+  await Code.addCode(id, hash);
   sendMail(email, 'Login code', code);
   return code;
 };

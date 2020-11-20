@@ -1,62 +1,35 @@
 const Chat = require('../../repositories/chats');
 const PersonalChat = require('../../repositories/chats/personal');
 
-const UserRepo = require('../../repositories/user/bio');
-const User = new UserRepo();
-const { namespace } = require('../../namespaces');
 const { CustomError } = require('../../helpers/errors');
+const { broadcastToSetOfRooms } = require('../../realtime/broadcast');
 
-const getChatByUserId = async (senderId, receiverId) => {
-  const messagesList = await PersonalChat.getPersonalChatByUserId({ senderId, receiverId });
-  return messagesList;
-};
+const getChatByUserId = (senderId, receiverId, from) => PersonalChat.getPersonalChatByUserId({ senderId, receiverId, from });
 
-const getCountAttachments = async (senderId, receiverId) => {
-  const type = 'personal';
-  const messagesList = Chat.countAttachmentsInChat(type, { senderId, receiverId });
-  return messagesList;
-};
+const getCountAttachments = (senderId, receiverId) => Chat.countAttachmentsInChat('personal', { senderId, receiverId });
 
-
-const readMessages = async (userId, chatId) => {
-  const { type } = await Chat.get(chatId);
-
-  if (type === 'personal') {
-
-    const isMemberOfChat = await Chat.isMember({ userId, chatId });
-    if (!isMemberOfChat) {
-      throw new CustomError('Permission denied', 403);
-    }
-
-    const members = await Chat.getMembers({ userId, chatId });
-    const user1Id = members[0].userId;
-    const user2Id = members[1].userId;
-
-
-    const [user1, user2] = await Promise.all([
-      User.getUser({ id: user1Id, me: userId }),
-      User.getUser({ id: user2Id, me: userId }),
-    ]);
-    await Chat.readMessages(type, { chatId, userId });
-    const response = {
-      id: userId,
-      chatId,
-    };
-
-    namespace.to(user1Id).emit('message_read', { ...response, opponent: user2 });
-    namespace.to(user2Id).emit('message_read', { ...response, opponent: user1 });
+const readMessages = async (userId, messageId) => {
+  const data = await Chat.getChatByMessageId(messageId);
+  const { chatId, type } = data;
+  const members = await Chat.getMembers({ userId, chatId });
+  if (!members.includes(userId)) {
+    throw new CustomError('Permission denied', 403);
   }
+  await Chat.readMessages(type, { messageId, userId });
+
+  const response = {
+    id: userId,
+    chatId,
+  };
+
+  broadcastToSetOfRooms(members, 'message_read', response);
+  return;
 };
 
-const getChats = async userId => {
-  const chats = await Chat.getAll({ userId });
-  return chats;
-};
+const getChats = userId => Chat.getAll({ userId });
 
-const getFiles = async (chatType, fileType, details) => {
-  const files = await Chat.getFilesFromChat(chatType, fileType, details);
-  return files;
-};
+const getFiles = (chatType, fileType, details) => Chat.getFilesFromChat(chatType, fileType, details);
+const getInitFiles = (chatType, details) => Chat.getInitFiles(chatType, details);
 
 module.exports = {
   getChatByUserId,
@@ -64,4 +37,5 @@ module.exports = {
   getChats,
   getFiles,
   getCountAttachments,
+  getInitFiles,
 };

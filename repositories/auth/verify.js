@@ -2,17 +2,17 @@ const { db } = global;
 const { CustomError } = require('../../helpers/errors');
 
 class Verify {
-  constructor(id, token) {
+  constructor(id, access) {
     this.id = id;
-    this.token = token;
+    this.access = access;
   }
   tokenFn() {
-    const { id, token } = this;
+    const { id, access } = this;
     return new Promise((resolve, reject) => {
       db('tokens')
         .where({
           userId: id,
-          token,
+          access,
         })
         .then(result => {
           if (result.length) return resolve(result[0]);
