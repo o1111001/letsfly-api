@@ -49,14 +49,27 @@ class User {
     const displayedNameRegex = name ? `${name}%`.toLowerCase() : '%';
     return new Promise((resolve, reject) => {
       db.raw(
-        `SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline"
-            FROM users u
-            where u.id not in (
-              select c.contact from contacts c where c."userId" = ?
-            )
-            and lower(concat("u"."firstName", ' ', "u"."lastName")) like ? 
-            order by u."isOnline" desc, u."lastOnline" desc`,
-        [id, displayedNameRegex])
+        ` with selected_chats as (
+          select 
+          c.id,
+          c."link",
+          array_agg(cmu."userId") as "users",
+          (select count(distinct cmu."userId")) as "description",
+          c.avatar,
+          c."name",
+          'group' as "type"
+          from chats c
+          join chats_memberships cm on cm."chatId" = c.id
+          join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+          where 
+          lower(c."name") like ?
+          and c."isDeleted" != true
+          group by c.id
+        ) select * from selected_chats sc WHERE NOT (? = ANY (sc."users")) limit 10
+        
+        
+        `,
+        [displayedNameRegex, id])
         .then(result => resolve(result.rows))
         .catch(err => reject(err));
     });
@@ -65,15 +78,35 @@ class User {
     const displayedNameRegex = name ? `${name}%`.toLowerCase() : '%';
     return new Promise((resolve, reject) => {
       db.raw(
-        `SELECT "u"."id", "u"."username", "u"."firstName", "u"."lastName", "u"."email", "u"."phone", "u"."about", "u"."avatar", "u"."isOnline", "u"."lastOnline"
-            FROM users u
-            where u.id not in (
-              select c.contact from contacts c where c."userId" = ?
-            )
-            and u.username like ? 
-            order by u."isOnline" desc, u."lastOnline" desc`,
-        [id, displayedNameRegex])
-        .then(result => resolve(result.rows))
+        `with selected_chats as (
+          select 
+          c.id,
+          c."link",
+          array_agg(cmu."userId") as "users",
+          (select count(distinct cmu."userId")) as "description",
+          c.avatar,
+          c."name",
+          'group' as "type"
+          from chats c
+          join chats_memberships cm on cm."chatId" = c.id
+          join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+          where 
+          c."link" like ?
+          and c."isDeleted" != true
+          group by c.id
+        ) select  
+        sc.id,
+        sc."link",
+        sc."description",
+        sc.avatar,
+        sc."name",
+        sc."type"
+        from selected_chats sc WHERE NOT (? = ANY (sc."users")) limit 10`,
+        [displayedNameRegex, id])
+        .then(result => {
+          // console.log(result.rows);
+          resolve(result.rows);
+        })
         .catch(err => reject(err));
     });
   }

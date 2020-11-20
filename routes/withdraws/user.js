@@ -9,6 +9,7 @@ const { requestWrapper } = require('../../helpers/errors');
 const {
   create,
   withdrawsList,
+  historyList,
 } = require('../../controllers/withdraws/user');
 
 router.post('/',
@@ -19,6 +20,11 @@ router.post('/',
 router.get('/list',
   authorized,
   requestWrapper(withdrawsList),
+);
+
+router.get('/history',
+  authorized,
+  requestWrapper(historyList),
 );
 
 module.exports = router;

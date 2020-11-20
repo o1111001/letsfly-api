@@ -26,6 +26,7 @@ const {
   chatsRoutes,
   personalChatsRoutes,
   groupChatsRoutes,
+  membershipsRoutes,
   messagesRoutes,
   usersBioRoutes,
   usersBanRoutes,
@@ -38,7 +39,19 @@ const {
 
 const { globalErrorHandler } = require('./helpers/errors');
 
-app.use(cors());
+const whitelist = ['https://www.messages.social', 'http://localhost:3000'];
+const corsOptions = {
+  origin(origin, callback) {
+    if (whitelist.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 app.use(cookieParser());
@@ -51,7 +64,9 @@ app.use(bodyParser.json());
 
 
 // regular routes
-app.get('/api/health', (req, res) => res.send('Success'));
+app.use('*', (req, res, next) => { console.log(req.method, req.originalUrl, req.body); return next(); });
+
+app.get('/', (req, res) => res.send('Success'));
 app.use('/api/v1/auth', authRoutes);
 
 app.use('/api/v1/users', usersBioRoutes);
@@ -61,6 +76,7 @@ app.use('/api/v1/users/ban', usersBanRoutes);
 app.use('/api/v1/chats', chatsRoutes);
 app.use('/api/v1/chats/personal', personalChatsRoutes);
 app.use('/api/v1/chats/group', groupChatsRoutes);
+app.use('/api/v1/chats/group/memberships', membershipsRoutes);
 
 app.use('/api/v1/contacts', contactsRoutes);
 app.use('/api/v1/contacts/find', contactsFindRoutes);
@@ -77,6 +93,7 @@ app.use('/api/v1/payment_services_provider', paymentServicesProvider);
 
 // static files routes
 app.use('/files', filesRoutes);
+// app.use('/admin/analytics', analyticsAdminRoutes);
 
 
 // -- need to be moved to cdn

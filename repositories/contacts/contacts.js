@@ -23,19 +23,14 @@ class Contacts {
     });
   }
 
-  add(displayedFirstName, displayedLastName) {
-    const { userId, contact } = this;
-    return new Promise((resolve, reject) => {
-      db('contacts')
-        .insert({
-          userId,
-          contact,
-          displayedFirstName,
-          displayedLastName,
-        })
-        .then(res => resolve(res))
-        .catch(err => reject(err));
-    });
+  add({ userId, contactId, displayedFirstName, displayedLastName }) {
+    return db('contacts')
+      .insert({
+        userId,
+        contact: contactId,
+        displayedFirstName,
+        displayedLastName,
+      });
   }
 
   delete() {

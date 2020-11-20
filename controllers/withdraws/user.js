@@ -2,7 +2,10 @@
 const {
   create: createWithdrawService,
   withdrawsList: withdrawsListService,
+  historyList: historyListService,
 } = require('../../services/withdraws/user');
+
+const { responseCreator } = require('../../helpers/responses');
 
 const response = data => ({
   message: `Success`,
@@ -22,7 +25,14 @@ const withdrawsList = async req => {
   return response(result);
 };
 
+const historyList = async req => {
+  const { id } = req.locals;
+  const list = await historyListService(id);
+  return responseCreator({ list });
+};
+
 module.exports = {
   create,
   withdrawsList,
+  historyList,
 };

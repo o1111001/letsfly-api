@@ -6,55 +6,79 @@ class PersonalChat {
     const { senderId, receiverId } = fields;
     return new Promise((resolve, reject) => {
       db.raw(`
-        select "chatId" as "id" from chats_users cu
-        left join chats ch on ch.id = cu."chatId"
-        where cu."userId" in (?, ?) and ch.type = 'personal'
-        group by cu."chatId"
-        having count(cu."userId") = 2
+      select cm.id as "chatMembershipId", cm."chatId"
+      from chats_memberships cm
+      join chats ch on ch.id = cm."chatId"
+      join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+      where cmu."userId" in (?, ?)
+      and ch.type = 'personal'
+      group by cm.id
+      having count(cm.id) = 2
+      limit 1;
       `,
       [senderId, receiverId])
-        .then(result => resolve(result.rows.length && result.rows[0] ? result.rows[0].id : null))
+        .then(result => {
+          resolve(result.rows.length && result.rows[0] ? result.rows[0] : { chatMembershipId: null, chatId: null });
+        })
         .catch(err => reject(err));
     });
   }
 
 
-  getPersonalChatByUserId({ senderId, receiverId }) {
+  getPersonalChatByUserId({ senderId, receiverId, limit = 20, from }) {
     return new Promise((resolve, reject) => {
       db.raw(
         `
         with messages_list as (
           select 
           m.id,
-          ch.id as "chatId",
           m.text,
-          m."attachmentId",
+          (select a.key from attachments a where a.id = m."attachmentId") as "attachment",
+          (select a.resolution from attachments a where a.id = m."attachmentId") as "resolution",
+          (select a.duration from attachments a where a.id = m."attachmentId") as "duration",
+          (select a.waveform from attachments a where a.id = m."attachmentId") as "waveform",
+          (select a."originalName" from attachments a where a.id = m."attachmentId") as "originalName",
+
           m."createdAt",
           m."senderId",
           m."type",
           (
             case
             when m.id <= (select "messageId" from messages_is_read where "userId" != ? order by "messageId" desc limit 1)
-              then 1
-            else 0
+              then true
+            else false
           end
           )::boolean as "isRead"
 
-          from "chats" ch
-          inner join "messages" m on m."chatId" = "ch"."id"
-          where "ch"."id" = (
-            select "chatId" from chats_users cu
-            left join chats ch on ch.id = cu."chatId"
-            where cu."userId" in (?, ?) and ch.type = 'personal'
-            group by cu."chatId"
-            having count(cu."userId") = 2
+          from "messages" m
+          where "m"."id" in (
+          	select distinct cmm."messageId" 
+            from chats_memberships_messages cmm 
+            where cmm."chatMembershipId" = (
+              select cm.id
+              from chats_memberships cm
+              join chats ch on ch.id = cm."chatId"
+              join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+              where cmu."userId" in (?, ?)
+              and ch.type = 'personal'
+              group by cm.id
+              having count(cm.id) = 2
+              limit 1
+            )
           ) and m."isDeleted" != true
-          order by "createdAt" desc limit 30
-        ) select * from messages_list order by "createdAt" asc
+          ${from && !Number.isNaN(Number(from)) ? `and m.id < ${from}` : ''}
+          order by "createdAt" desc
+          limit ?
+              
+        ) select * 
+        from messages_list ml 
+        order by "createdAt" desc
         `,
-        [senderId, senderId, receiverId],
+        [senderId, senderId, receiverId, limit],
       )
-        .then(result => resolve(result.rows))
+        .then(result => {
+          resolve(result.rows);
+        })
         .catch(err => reject(err));
     });
   }

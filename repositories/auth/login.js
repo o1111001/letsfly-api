@@ -45,12 +45,13 @@ class Login {
     });
   }
 
-  addToken(userId, token) {
+  addToken(userId, access, refresh) {
     return new Promise((resolve, reject) => {
       db('tokens')
         .insert({
           userId,
-          token,
+          access,
+          refresh,
         })
         .then(resolve())
         .catch(err => reject(err));

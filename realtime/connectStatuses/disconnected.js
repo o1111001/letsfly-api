@@ -12,6 +12,6 @@ module.exports = socket => {
     !Object.keys(rooms[userId].sockets).length
   ) {
     disconnectService(userId);
-    namespace.emit('offline', { userId, lastOnline: Date.now() });
+    namespace.emit('offline', { event: 'offline', userId, lastOnline: Date.now() });
   }
 };

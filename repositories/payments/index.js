@@ -1,9 +1,9 @@
 const { db } = global;
+const promisify = require('../../helpers/promisify');
 
 class Payments {
-  constructor(id) {
-    this.id = id;
-  }
+
+
 
   checkExists(email) {
     return new Promise((resolve, reject) => {
@@ -15,17 +15,59 @@ class Payments {
   }
 
   create(details) {
-    return new Promise((resolve, reject) => {
-      db('payments')
-        .insert(details)
-        .then(resolve())
-        .catch(err => reject(err));
-    });
+    return db('payments')
+      .insert(details);
+    // const trx = await promisify(db.transaction.bind(db));
+    // try {
+    //   await db('payments')
+    //     .insert(details);
+
+    //   if (details.status === 'Approved') {
+    //     const { amount, userId } = details;
+    //     await trx('user_balance')
+    //       .where({ userId })
+    //       .increment({
+    //         balance: amount,
+    //       });
+    //   }
+
+    //   await trx.commit();
+    //   return {};
+    // } catch (e) {
+    //   console.log(e);
+    //   await trx.rollback('Internal server error');
+    // }
   }
 
-  checkBalance(userId) {
+  async updateStatus({ order, status }) {
+    const trx = await promisify(db.transaction.bind(db));
+    try {
+      const [userId, amount] = await trx('payments')
+        .update({
+          status,
+        })
+        .where({ order })
+        .returning(['userId', 'amount']);
+
+      if (status === 'approved') {
+        await trx('user_balance')
+          .where({ userId })
+          .increment({
+            balance: amount,
+          });
+      }
+
+      await trx.commit();
+      return true;
+    } catch (e) {
+      console.log(e);
+      await trx.rollback('Internal server error');
+    }
+  }
+
+  checkBalance(userId, trx) {
     return new Promise((resolve, reject) => {
-      db('user_balance')
+      (trx || db)('user_balance')
         .where({
           userId,
         })
@@ -60,4 +102,4 @@ class Payments {
   }
 }
 
-module.exports = Payments;
+module.exports = new Payments();

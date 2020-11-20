@@ -77,7 +77,7 @@ router.put('/bio/about',
 router.put('/bio/avatar',
   validateAvatar,
   authorized,
-  upload('avatars').single('avatar'),
+  // upload('avatars').single('avatar'),
   requestWrapper(updateAvatar),
 );
 

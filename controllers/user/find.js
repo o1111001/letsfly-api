@@ -3,11 +3,9 @@ const {
   findUsername: findUsernameService,
 } = require('../../services/user/find');
 
-const response = bio => ({
+const response = data => ({
   message: `Success`,
-  data: {
-    bio,
-  },
+  data,
 });
 
 

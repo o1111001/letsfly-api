@@ -1,14 +1,20 @@
 const {
-  download: getFileService,
+  getUrl: getUrlService,
 } = require('../../services/files');
 
-const getFile = async req => {
-  const { folder, filename } = req.params;
-  return getFileService(folder, filename);
+const { responseCreator } = require('../../helpers/responses');
+const fs = require('fs');
+
+
+const getPreSignedUrl = async req => {
+  const { key } = req.query;
+  const { id: userId } = req.locals;
+  fs.appendFile('log.txt', 's3\n', () => {});
+  const url = await getUrlService(userId, key);
+  return responseCreator({ url });
 };
 
-
 module.exports = {
-  getFile,
+  getPreSignedUrl,
 };
 

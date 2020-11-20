@@ -4,6 +4,8 @@ const express = require('express');
 const router = express.Router();
 
 const authorized = require('../../policies/authorized');
+const authorizedRefresh = require('../../policies/authorizedRefresh');
+
 const { requestWrapper } = require('../../helpers/errors');
 
 const {
@@ -11,6 +13,8 @@ const {
   login,
   sendCode,
   verify,
+  refresh,
+  logout,
 } = require('../../controllers/auth/user');
 
 const {
@@ -30,7 +34,12 @@ router.post('/signup',
 
 router.post('/login',
   validateCode,
-  requestWrapper(login),
+  login,
+);
+
+router.post('/refresh',
+  authorizedRefresh,
+  refresh,
 );
 
 router.post('/login/code',
@@ -41,6 +50,10 @@ router.post('/login/code',
 router.get('/verify',
   authorized,
   requestWrapper(verify),
+);
+
+router.post('/logout',
+  logout,
 );
 
 module.exports = router;

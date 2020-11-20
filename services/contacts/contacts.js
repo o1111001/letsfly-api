@@ -1,4 +1,8 @@
-const { contacts: ContactsRepo } = require('../../repositories');
+const {
+  contacts: ContactsRepo,
+  find: FindContactsRepo,
+} = require('../../repositories/contacts');
+
 const { CustomError } = require('../../helpers/errors');
 
 const getAllContacts = async id => {
@@ -11,7 +15,7 @@ const addContact = async (userId, contactId, displayedFirstName, displayedLastNa
   try {
     if (userId === contactId) throw new CustomError('You cannot add yourself to contacts', 422);
     const user = new ContactsRepo(userId, contactId);
-    await user.add(displayedFirstName, displayedLastName);
+    await user.add({ userId, contactId, displayedFirstName, displayedLastName });
     return;
   } catch (error) {
     if (error.code === '23505') {
@@ -28,32 +32,27 @@ const deleteContact = async (userId, contactId) => {
 };
 
 const findContactsUsername = async (id, username) => {
-  const user = new ContactsRepo();
-  const result = await user.findUsername(id, username);
+  const result = await FindContactsRepo.findUsername(id, username);
   return result;
 };
 
 const findDisplayedName = async (id, displayedName) => {
-  const user = new ContactsRepo();
-  const result = await user.findDisplayedName(id, displayedName);
+  const result = await FindContactsRepo.findDisplayedName(id, displayedName);
   return result;
 };
 
 const findContactsEmail = async (id, email) => {
-  const user = new ContactsRepo();
-  const result = await user.findEmail(id, email);
+  const result = await FindContactsRepo.findEmail(id, email);
   return result;
 };
 
 const findContactEmail = async (id, email) => {
-  const user = new ContactsRepo();
-  const result = await user.findFullCompareEmail(id, email);
+  const result = await FindContactsRepo.findFullCompareEmail(id, email);
   return result;
 };
 
 const findContactsFullname = async (id, fullname) => {
-  const user = new ContactsRepo();
-  const result = await user.findFullname(id, fullname);
+  const result = await FindContactsRepo.findFullname(id, fullname);
   return result;
 };
 

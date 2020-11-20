@@ -19,6 +19,10 @@ const {
 } = require('./chats');
 
 const {
+  memberships: membershipsRoutes,
+} = require('./memberships');
+
+const {
   messages: messagesRoutes,
 } = require('./messages');
 
@@ -46,6 +50,7 @@ module.exports = {
   chatsRoutes,
   personalChatsRoutes,
   groupChatsRoutes,
+  membershipsRoutes,
   messagesRoutes,
   usersBioRoutes,
   usersBanRoutes,

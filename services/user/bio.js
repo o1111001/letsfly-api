@@ -1,23 +1,24 @@
 const { bio: BioRepo } = require('../../repositories');
 const { CustomError } = require('../../helpers/errors');
-
+const {
+  contacts: ContactsRepo,
+} = require('../../repositories/contacts');
 const getBio = async (id, me) => {
   const user = new BioRepo(id);
-  let bio;
-  if (id === me) {
-    bio = await user.get(me);
+  if (+id === +me) {
+    return user.get(me);
   } else {
-    bio = await user.get(me);
+    const bio = await user.get(me);
     bio.balance = undefined;
     bio.isAdmin = undefined;
-
+    bio.waitWithdraw = undefined;
     if (bio.contact) {
       const { displayedFirstName, displayedLastName } = await user.getUser({ id, me });
       bio.displayedFirstName = displayedFirstName;
       bio.displayedLastName = displayedLastName;
     }
+    return bio;
   }
-  return bio;
 };
 
 const updateFullBio = async (id, { firstName, lastName, phone, username, about }) => {
@@ -76,9 +77,9 @@ const updateAbout = async (id, about) => {
   return updatedUser[0];
 };
 
-const updateAvatar = async (id, path) => {
+const updateAvatar = async (id, key) => {
   const user = new BioRepo(id);
-  const updatedUser = await user.updateAvatar(path);
+  const updatedUser = await user.updateAvatar(key);
   return updatedUser[0];
 };
 
