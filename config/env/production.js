@@ -21,6 +21,8 @@ module.exports = {
   AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
+  CORS_WHITELIST: process.env.CORS_WHITELIST,
+
   // WFP
   MERCHANT_ACCOUNT: process.env.MERCHANT_ACCOUNT,
   MERCHANT_SECRET_KEY: process.env.MERCHANT_SECRET_KEY,

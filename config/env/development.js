@@ -15,6 +15,7 @@ module.exports = {
   REDIS_HOST: process.env.REDIS_HOST,
   REDIS_PORT: parseInt(process.env.REDIS_PORT, 10),
   BUCKET_NAME: process.env.BUCKET_NAME,
+  CORS_WHITELIST: process.env.CORS_WHITELIST,
 
   // WFP
   MERCHANT_ACCOUNT: process.env.MERCHANT_ACCOUNT,
