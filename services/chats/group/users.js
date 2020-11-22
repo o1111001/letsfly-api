@@ -6,13 +6,7 @@ const getChat = async (link, userId) => {
   const chat = await Chat.getFull(link, userId || -1);
   if (!chat) return {};
   chat.messages = await Chat.getMessages(userId, chat.id);
-  // const files = await Chat.countAttachmentsInChat(chat.type, { chatId: chat.id, userId });
-  chat.files = {
-    media: { count: 1, list: [] },
-    audio: { count: 1, list: [] },
-    audio_message: { count: 1, list: [] },
-    file: { count: 1, list: [] },
-  };
+  chat.files = await Chat.getInitFiles(chat.type, { chatId: chat.id, userId });
   return chat;
 };
 

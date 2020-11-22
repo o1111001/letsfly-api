@@ -418,20 +418,32 @@ class Chat {
       [user1, user2],
     );
 
-    const publicChat = ({ chatId }) => db.raw(
+    const publicChat = ({ chatId, userId }) => db.raw(
       `
-        select a."type" , a."filename"
-        from chats ch
-        left join messages m on m."chatId" = ch.id
-        left join attachments a on a.id = m."attachmentId"
-        where ch.id = ? and attachment is not null order by m."createdAt" desc
+        select 
+          a."type", 
+          a."key",
+          a."duration",
+          a."filename",
+          m."senderId" as "sender",
+          m."createdAt" as "createdAt"
+        from attachments a
+        join messages m on m."attachmentId" = a.id 
+        join chats_memberships_messages cmm on cmm."messageId" = m.id 
+        join chats_memberships cm on cm.id = cmm."chatMembershipId"
+        where cm."chatId" = ?
+        and (
+          (select ca."adminId" from chats_admins ca where ca."chatId" = cm."chatId" and ca."adminId" = ?)::boolean
+          or (? != 0  and cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ? and cmu."endedAt" > now()))
+          or (? = 0 and cm."type" = 'standard')
+        )
       `,
-      [chatId],
+      [chatId, userId, userId, userId, userId],
     );
 
     const defineSubquery = {
       personal: personal(details),
-      public: publicChat(details),
+      group: publicChat(details),
 
     };
 
