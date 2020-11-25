@@ -22,7 +22,7 @@ module.exports = {
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_PASS: process.env.EMAIL_PASS,
   CORS_WHITELIST: process.env.CORS_WHITELIST,
-
+  SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
   // WFP
   MERCHANT_ACCOUNT: process.env.MERCHANT_ACCOUNT,
   MERCHANT_SECRET_KEY: process.env.MERCHANT_SECRET_KEY,

@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/o1111001/letsfly-api#readme",
   "dependencies": {
+    "@sendgrid/mail": "^7.4.0",
     "aws-sdk": "^2.762.0",
     "axios": "^0.20.0",
     "bcrypt": "^4.0.1",
