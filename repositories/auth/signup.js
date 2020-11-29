@@ -35,7 +35,7 @@ class SignUp {
       await trx.commit();
       return [{ id: userId }];
     } catch (e) {
-      console.log(e);
+      console.error(e);
       await trx.rollback('Internal server error');
     }
   }

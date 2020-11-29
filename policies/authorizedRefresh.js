@@ -8,7 +8,7 @@ const authorized = async (req, res, next) => {
     };
     return next();
   } catch (error) {
-    console.log(error);
+    console.error(error);
     return next(error);
   }
 };

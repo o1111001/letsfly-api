@@ -242,7 +242,7 @@ class Chat {
       await trx.commit();
       return message || { chatId, chatMembershipId };
     } catch (e) {
-      console.log(e);
+      console.error(e);
       await trx.rollback('Internal server error');
       throw new CustomError('Internal server error', 500);
     }
@@ -351,7 +351,7 @@ class Chat {
       await trx.commit();
       return { chatId, endedAt };
     } catch (e) {
-      console.log(e);
+      console.error(e);
       await trx.rollback('Internal server error');
     }
   }
@@ -374,7 +374,7 @@ class Chat {
       await trx.commit();
       return { messages, opponent, hasMore };
     } catch (error) {
-      console.log(error);
+      console.error(error);
       await trx.rollback('Internal server error');
     }
   }
