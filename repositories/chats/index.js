@@ -15,6 +15,14 @@ class Chat {
     });
   }
 
+  async getChatIdByLink(link) {
+    const [data] = await db('chats')
+      .select('id')
+      .where({ link })
+      .andWhereRaw('"isDeleted" is not true');
+    return data;
+
+  }
   async getMainChatInfo(id, trx) {
     const data = await (trx || db).raw(`
     select 
@@ -30,7 +38,7 @@ class Chat {
 
   }
 
-  async getMessages(userId = 0, chatId, limit = 30, trx) {
+  async getMessages({ userId = 0, chatId }, { limit = 25, offset = 0 }, trx) {
     const data = await (trx || db).raw(`
     select
       
@@ -70,8 +78,36 @@ class Chat {
     group by m.id
     order by m.id desc
     limit ?
-    `, [chatId, userId, userId, userId, userId,  limit]);
-    return data.rows;
+    offset ?
+    `, [chatId, userId, userId, userId, userId, limit, offset],
+    );
+
+    const { rows: firstMessageData } = await (trx || db).raw(`
+    select
+      
+      m."id"
+    from messages m
+    join chats_memberships_messages cmm on cmm."messageId" = m.id 
+    join chats_memberships cm on cm.id = cmm."chatMembershipId" 
+    where cm."chatId" = ?
+    and (
+      (select ca."adminId" from chats_admins ca where ca."chatId" = cm."chatId" and ca."adminId" = ?)::boolean
+      or (? != 0  and cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ?))
+      or (? = 0 and cm."type" = 'standard')
+    )
+    order by m.id asc
+    limit 1
+    `, [chatId, userId, userId, userId, userId],
+    );
+
+    const firstMessage = firstMessageData && firstMessageData.length && firstMessageData[0].id;
+    const list = data.rows;
+
+    const hasMore = firstMessage && list.length && (firstMessage !== list[list.length - 1].id);
+
+
+    // console.log(data.rows);
+    return { hasMore, messages: list };
   }
 
   getFull(link, userId) {
@@ -333,10 +369,10 @@ class Chat {
           .del();
       }
 
-      const messages = await this.getMessages(userId, chatId, 30, trx);
+      const { messages, hasMore } = await this.getMessages({ userId, chatId }, {}, trx);
       const opponent = await this.getMainChatInfo(chatId, trx);
       await trx.commit();
-      return { messages, opponent };
+      return { messages, opponent, hasMore };
     } catch (error) {
       console.log(error);
       await trx.rollback('Internal server error');
