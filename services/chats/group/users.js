@@ -1,18 +1,14 @@
 const Chat = require('../../../repositories/chats');
-
+const { CustomError } = require('../../../helpers/errors');
 const isMember = ({ userId, chatId }) => Chat.isMember({ userId, chatId });
 
 const getChat = async (link, userId) => {
   const chat = await Chat.getFull(link, userId || -1);
   if (!chat) return {};
-  chat.messages = await Chat.getMessages(userId, chat.id);
-  // const files = await Chat.countAttachmentsInChat(chat.type, { chatId: chat.id, userId });
-  chat.files = {
-    media: { count: 1, list: [] },
-    audio: { count: 1, list: [] },
-    audio_message: { count: 1, list: [] },
-    file: { count: 1, list: [] },
-  };
+  const { messages, hasMore } = await Chat.getMessages({ userId, chatId: chat.id }, {});
+  chat.messages = messages;
+  chat.hasMore = hasMore;
+  chat.files = await Chat.getInitFiles(chat.type, { chatId: chat.id, userId });
   return chat;
 };
 
@@ -23,6 +19,11 @@ const privateSubscribe = async (chatId, userId, period) => {
   await Chat.privateSubscribe(chatId, userId, period);
 };
 
+const getMessagesOffset = (chatId, userId, offset) => {
+  if (!chatId) throw new CustomError('Chat not found', 404);
+  return Chat.getMessages({ userId, chatId }, { offset });
+};
+
 module.exports = {
   isMember,
   getChat,
@@ -30,4 +31,5 @@ module.exports = {
   leaveChat,
   declineInvite,
   privateSubscribe,
+  getMessagesOffset,
 };

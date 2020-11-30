@@ -15,7 +15,7 @@ const signUp = async email => {
   const code = generateCode();
   const hash = await Hash.generate(code);
   await Code.addCode(id, hash);
-  sendMail(email, 'Login code', code);
+  sendMail(email, 'Ваш код для входа в LetsFly', code);
   return code;
 };
 

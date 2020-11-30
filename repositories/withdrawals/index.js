@@ -82,7 +82,7 @@ class Withdraw {
       await trx.commit();
       return { amount, userId };
     } catch (e) {
-      console.log(e);
+      console.error(e);
       await trx.rollback('Internal server error');
     }
   }

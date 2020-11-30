@@ -29,8 +29,8 @@ const {
   leaveChat,
   declineInvite,
   privateSubscribe,
+  getMessagesOffset,
 } = require('../../../controllers/chats/group/users');
-
 
 // chat admins
 
@@ -99,6 +99,11 @@ router.put('/avatar',
 router.get('/link/:link',
   authorizedNotThrowable,
   requestWrapper(getChat),
+);
+
+router.get('/messages',
+  authorizedNotThrowable,
+  requestWrapper(getMessagesOffset),
 );
 
 router.post('/subscribe',

@@ -34,7 +34,7 @@ class Payments {
     //   await trx.commit();
     //   return {};
     // } catch (e) {
-    //   console.log(e);
+    //   console.error(e);
     //   await trx.rollback('Internal server error');
     // }
   }
@@ -60,7 +60,7 @@ class Payments {
       await trx.commit();
       return true;
     } catch (e) {
-      console.log(e);
+      console.error(e);
       await trx.rollback('Internal server error');
     }
   }

@@ -51,7 +51,6 @@ class ContactsFind {
         `,
         [id, nameRegex, id, nameRegex, id])
         .then(result => {
-          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));
@@ -125,7 +124,6 @@ class ContactsFind {
         `,
         [id, usernameRegex, id, usernameRegex, id])
         .then(result => {
-          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));

@@ -4,7 +4,10 @@ const express = require('express');
 const app = express();
 
 const server = require('http').Server(app);
-const { PORT } = require('./config/env');
+const {
+  PORT,
+  CORS_WHITELIST,
+} = require('./config/env');
 
 global.basedir = __dirname;
 require('./config/db');
@@ -39,7 +42,7 @@ const {
 
 const { globalErrorHandler } = require('./helpers/errors');
 
-const whitelist = ['https://www.messages.social', 'http://localhost:3000'];
+const whitelist = CORS_WHITELIST.split(',');
 const corsOptions = {
   origin(origin, callback) {
     if (whitelist.indexOf(origin) !== -1) {
