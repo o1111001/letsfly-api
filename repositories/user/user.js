@@ -104,7 +104,6 @@ class User {
         from selected_chats sc WHERE NOT (? = ANY (sc."users")) limit 10`,
         [displayedNameRegex, id])
         .then(result => {
-          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));

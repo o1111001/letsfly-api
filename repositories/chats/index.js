@@ -104,9 +104,6 @@ class Chat {
     const list = data.rows;
 
     const hasMore = firstMessage && list.length && (firstMessage !== list[list.length - 1].id);
-
-
-    // console.log(data.rows);
     return { hasMore, messages: list };
   }
 
@@ -627,62 +624,6 @@ class Chat {
     });
   }
 
-  // getInitFiles(type, details) {
-  //   const personal = ({ user1, user2 }) => db.raw(
-  //     `
-  //     select cm.id
-  //     from chats_memberships cm
-  //     left join chats ch on ch.id = cm."chatId" and ch.type = 'personal'
-  //     left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
-  //     where cmu."userId" in (?, ?)
-  //     group by cm.id
-  //     having count(cm.id) = 2
-  //     limit 1
-  //     `,
-  //     [user1, user2],
-  //   );
-
-  //   const defineSubquery = {
-  //     personal: personal(details),
-  //   };
-  //   return new Promise((resolve, reject) => {
-  //     db.raw(
-  //       `
-
-
-  //       with files as (?) select
-  //       (select json_build_object(
-  //         'count', count(type)::int,
-  //         'list', array_agg(key)
-  //       ) from files where type = 'photo' or type = 'video'),
-  //       (select count(type)::int as "music" from files where type = 'audio'),
-  //       (select count(type)::int as "audio_message" from files where type = 'audio_message'),
-  //       (select count(type)::int as "file" from files where type = 'another')
-
-
-
-  //       select
-  //         a."id",
-  //         a."type",
-  //         a."createdAt",
-  //         a."key",
-  //         m."senderId",
-  //         m.id as "messageId"
-  //       from "attachments" a
-  //       left join messages m on m."attachmentId" = a.id
-  //       left join chats_memberships_messages cmm on cmm."messageId" = m.id
-  //       where cmm."chatMembershipId" = (?) and a."type" = ANY(?)
-  //       order by a."createdAt" desc`,
-  //       [defineSubquery[type]],
-  //     )
-  //       .then(result => {
-  //         console.log(result.rows);
-  //         resolve(result.rows);
-  //       })
-  //       .catch(err => reject(err));
-  //   });
-  // }
-
   addAdmin({ adminId, chatId }) {
     return new Promise((resolve, reject) => {
       db('chats_admins')
@@ -956,7 +897,6 @@ class Chat {
         Array(9).fill(userId),
       )
         .then(result => {
-          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));
