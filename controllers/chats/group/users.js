@@ -6,11 +6,12 @@ const {
   leaveChat: leaveChatService,
   declineInvite: declineInviteService,
   privateSubscribe: privateSubscribeChatService,
+  getMessagesOffset: getMessagesOffsetService,
 } = require('../../../services/chats/group/users');
 
 const getChat = async req => {
   const { link } = req.params;
-  const userId = (req.locals && req.locals.id) ? req.locals.id : 0;
+  const userId = (req.locals && req.locals.id) || 0;
   const chat = await getChatService(link, userId);
   return responseCreator({ chat });
 };
@@ -42,6 +43,14 @@ const declineInvite = async req => {
   return responseCreator();
 };
 
+const getMessagesOffset = async req => {
+  const { chatId, offset } = req.query;
+
+  const userId = (req.locals && req.locals.id) || 0;
+  const { messages, hasMore } = await getMessagesOffsetService(chatId, userId, offset);
+  return responseCreator({ messages, hasMore });
+};
+
 
 module.exports = {
   getChat,
@@ -49,4 +58,5 @@ module.exports = {
   privateSubscribe,
   leaveChat,
   declineInvite,
+  getMessagesOffset,
 };

@@ -25,10 +25,9 @@ class PersonalChat {
   }
 
 
-  getPersonalChatByUserId({ senderId, receiverId, limit = 20, from }) {
-    return new Promise((resolve, reject) => {
-      db.raw(
-        `
+  async getPersonalChatByUserId({ senderId, receiverId, limit = 20, offset = 0 }) {
+    const { rows: messages } = await db.raw(
+      `
         with messages_list as (
           select 
           m.id,
@@ -66,21 +65,44 @@ class PersonalChat {
               limit 1
             )
           ) and m."isDeleted" != true
-          ${from && !Number.isNaN(Number(from)) ? `and m.id < ${from}` : ''}
           order by "createdAt" desc
           limit ?
-              
+          offset ?
         ) select * 
         from messages_list ml 
         order by "createdAt" desc
+        
         `,
-        [senderId, senderId, receiverId, limit],
-      )
-        .then(result => {
-          resolve(result.rows);
-        })
-        .catch(err => reject(err));
-    });
+      [senderId, senderId, receiverId, limit, offset],
+    );
+
+    const { rows: firstMessageData } = await db.raw(`
+    select 
+      m.id
+      from "messages" m
+      where "m"."id" in (
+        select distinct cmm."messageId" 
+        from chats_memberships_messages cmm 
+        where cmm."chatMembershipId" = (
+          select cm.id
+          from chats_memberships cm
+          join chats ch on ch.id = cm."chatId"
+          join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
+          where cmu."userId" in (?, ?)
+          and ch.type = 'personal'
+          group by cm.id
+          having count(cm.id) = 2
+          limit 1
+        )
+      ) and m."isDeleted" != true
+      order by "createdAt" desc
+      limit 1
+    `, [senderId, receiverId],
+    );
+    const firstMessage = firstMessageData && firstMessageData.length && firstMessageData[0].id;
+
+    const hasMore = !!(firstMessage && messages.length && (firstMessage !== messages[messages.length - 1].id));
+    return { messages, hasMore };
   }
 }
 

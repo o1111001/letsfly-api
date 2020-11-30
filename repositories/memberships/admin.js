@@ -74,7 +74,7 @@ const updateInfo = async fields => {
     await trx.commit();
     return;
   } catch (error) {
-    console.log(error);
+    console.error(error);
     await trx.rollback();
 
   }

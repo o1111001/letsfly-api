@@ -11,6 +11,7 @@ const {
   getChatByUserId,
   getCountAttachmentsFromChat,
   getFiles,
+  getMessagesOffset,
 } = require('../../../controllers/chats/personal');
 
 router.get('/users/:id',
@@ -26,6 +27,11 @@ router.get('/attachments/count/:id',
 router.get('/files/:id/:type',
   authorized,
   requestWrapper(getFiles),
+);
+
+router.get('/users/:id/messages',
+  authorized,
+  requestWrapper(getMessagesOffset),
 );
 
 module.exports = router;

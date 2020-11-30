@@ -1,24 +1,19 @@
 const nodemailer = require('nodemailer');
-const { production, EMAIL_USER, EMAIL_PASS } = require('../../config/env');
+const sgMail = require('@sendgrid/mail');
+const login = require('./login');
+const { production, SENDGRID_API_KEY } = require('../../config/env');
+sgMail.setApiKey(SENDGRID_API_KEY);
 
 async function main(email, subject, text) {
-  const mailOptions = {
-    from: `"MESSAGES.SOCIAL" <${EMAIL_USER}>`,
+  const msg = {
     to: email,
+    from: 'LetsFly <no-reply@letsfly.app>',
     subject,
-    text,
+    html: login(text),
   };
   if (production) {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-      },
-    });
+    sgMail.send(msg);
 
-    const result = await transporter.sendMail(mailOptions);
-    return result;
   } else {
     const testAccount = await nodemailer.createTestAccount();
 
@@ -32,7 +27,7 @@ async function main(email, subject, text) {
       },
     });
 
-    const info = await transporter.sendMail(mailOptions);
+    const info = await transporter.sendMail(msg);
     console.log('Message sent: %s', info.messageId);
     console.log('Preview Info: %s', info);
 

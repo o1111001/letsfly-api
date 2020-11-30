@@ -15,6 +15,14 @@ class Chat {
     });
   }
 
+  async getChatIdByLink(link) {
+    const [data] = await db('chats')
+      .select('id')
+      .where({ link })
+      .andWhereRaw('"isDeleted" is not true');
+    return data;
+
+  }
   async getMainChatInfo(id, trx) {
     const data = await (trx || db).raw(`
     select 
@@ -30,7 +38,7 @@ class Chat {
 
   }
 
-  async getMessages(userId = 0, chatId, limit = 30, trx) {
+  async getMessages({ userId = 0, chatId }, { limit = 25, offset = 0 }, trx) {
     const data = await (trx || db).raw(`
     select
       
@@ -70,8 +78,33 @@ class Chat {
     group by m.id
     order by m.id desc
     limit ?
-    `, [chatId, userId, userId, userId, userId,  limit]);
-    return data.rows;
+    offset ?
+    `, [chatId, userId, userId, userId, userId, limit, offset],
+    );
+
+    const { rows: firstMessageData } = await (trx || db).raw(`
+    select
+      
+      m."id"
+    from messages m
+    join chats_memberships_messages cmm on cmm."messageId" = m.id 
+    join chats_memberships cm on cm.id = cmm."chatMembershipId" 
+    where cm."chatId" = ?
+    and (
+      (select ca."adminId" from chats_admins ca where ca."chatId" = cm."chatId" and ca."adminId" = ?)::boolean
+      or (? != 0  and cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ?))
+      or (? = 0 and cm."type" = 'standard')
+    )
+    order by m.id asc
+    limit 1
+    `, [chatId, userId, userId, userId, userId],
+    );
+
+    const firstMessage = firstMessageData && firstMessageData.length && firstMessageData[0].id;
+    const list = data.rows;
+
+    const hasMore = firstMessage && list.length && (firstMessage !== list[list.length - 1].id);
+    return { hasMore, messages: list };
   }
 
   getFull(link, userId) {
@@ -206,7 +239,7 @@ class Chat {
       await trx.commit();
       return message || { chatId, chatMembershipId };
     } catch (e) {
-      console.log(e);
+      console.error(e);
       await trx.rollback('Internal server error');
       throw new CustomError('Internal server error', 500);
     }
@@ -315,7 +348,7 @@ class Chat {
       await trx.commit();
       return { chatId, endedAt };
     } catch (e) {
-      console.log(e);
+      console.error(e);
       await trx.rollback('Internal server error');
     }
   }
@@ -333,12 +366,12 @@ class Chat {
           .del();
       }
 
-      const messages = await this.getMessages(userId, chatId, 30, trx);
+      const { messages, hasMore } = await this.getMessages({ userId, chatId }, {}, trx);
       const opponent = await this.getMainChatInfo(chatId, trx);
       await trx.commit();
-      return { messages, opponent };
+      return { messages, opponent, hasMore };
     } catch (error) {
-      console.log(error);
+      console.error(error);
       await trx.rollback('Internal server error');
     }
   }
@@ -418,20 +451,32 @@ class Chat {
       [user1, user2],
     );
 
-    const publicChat = ({ chatId }) => db.raw(
+    const publicChat = ({ chatId, userId }) => db.raw(
       `
-        select a."type" , a."filename"
-        from chats ch
-        left join messages m on m."chatId" = ch.id
-        left join attachments a on a.id = m."attachmentId"
-        where ch.id = ? and attachment is not null order by m."createdAt" desc
+        select 
+          a."type", 
+          a."key",
+          a."duration",
+          a."filename",
+          m."senderId" as "sender",
+          m."createdAt" as "createdAt"
+        from attachments a
+        join messages m on m."attachmentId" = a.id 
+        join chats_memberships_messages cmm on cmm."messageId" = m.id 
+        join chats_memberships cm on cm.id = cmm."chatMembershipId"
+        where cm."chatId" = ?
+        and (
+          (select ca."adminId" from chats_admins ca where ca."chatId" = cm."chatId" and ca."adminId" = ?)::boolean
+          or (? != 0  and cm.id in (select cmu."chatMembershipId" from chats_memberships_users cmu where cmu."userId" = ? and cmu."endedAt" > now()))
+          or (? = 0 and cm."type" = 'standard')
+        )
       `,
-      [chatId],
+      [chatId, userId, userId, userId, userId],
     );
 
     const defineSubquery = {
       personal: personal(details),
-      public: publicChat(details),
+      group: publicChat(details),
 
     };
 
@@ -578,62 +623,6 @@ class Chat {
         .catch(err => reject(err));
     });
   }
-
-  // getInitFiles(type, details) {
-  //   const personal = ({ user1, user2 }) => db.raw(
-  //     `
-  //     select cm.id
-  //     from chats_memberships cm
-  //     left join chats ch on ch.id = cm."chatId" and ch.type = 'personal'
-  //     left join chats_memberships_users cmu on cmu."chatMembershipId" = cm.id
-  //     where cmu."userId" in (?, ?)
-  //     group by cm.id
-  //     having count(cm.id) = 2
-  //     limit 1
-  //     `,
-  //     [user1, user2],
-  //   );
-
-  //   const defineSubquery = {
-  //     personal: personal(details),
-  //   };
-  //   return new Promise((resolve, reject) => {
-  //     db.raw(
-  //       `
-
-
-  //       with files as (?) select
-  //       (select json_build_object(
-  //         'count', count(type)::int,
-  //         'list', array_agg(key)
-  //       ) from files where type = 'photo' or type = 'video'),
-  //       (select count(type)::int as "music" from files where type = 'audio'),
-  //       (select count(type)::int as "audio_message" from files where type = 'audio_message'),
-  //       (select count(type)::int as "file" from files where type = 'another')
-
-
-
-  //       select
-  //         a."id",
-  //         a."type",
-  //         a."createdAt",
-  //         a."key",
-  //         m."senderId",
-  //         m.id as "messageId"
-  //       from "attachments" a
-  //       left join messages m on m."attachmentId" = a.id
-  //       left join chats_memberships_messages cmm on cmm."messageId" = m.id
-  //       where cmm."chatMembershipId" = (?) and a."type" = ANY(?)
-  //       order by a."createdAt" desc`,
-  //       [defineSubquery[type]],
-  //     )
-  //       .then(result => {
-  //         console.log(result.rows);
-  //         resolve(result.rows);
-  //       })
-  //       .catch(err => reject(err));
-  //   });
-  // }
 
   addAdmin({ adminId, chatId }) {
     return new Promise((resolve, reject) => {
@@ -908,7 +897,6 @@ class Chat {
         Array(9).fill(userId),
       )
         .then(result => {
-          // console.log(result.rows);
           resolve(result.rows);
         })
         .catch(err => reject(err));

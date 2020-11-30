@@ -31,6 +31,8 @@ const getChats = userId => Chat.getAll({ userId });
 const getFiles = (chatType, fileType, details) => Chat.getFilesFromChat(chatType, fileType, details);
 const getInitFiles = (chatType, details) => Chat.getInitFiles(chatType, details);
 
+const getMessagesOffset = (senderId, receiverId, offset) => PersonalChat.getPersonalChatByUserId({ senderId, receiverId, offset });
+
 module.exports = {
   getChatByUserId,
   readMessages,
@@ -38,4 +40,5 @@ module.exports = {
   getFiles,
   getCountAttachments,
   getInitFiles,
+  getMessagesOffset,
 };

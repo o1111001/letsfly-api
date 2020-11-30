@@ -3,6 +3,7 @@ const {
   getFiles: getFilesService,
   getCountAttachments: getCountAttachmentsService,
   getInitFiles: getInitFilesService,
+  getMessagesOffset: getMessagesOffsetService,
 } = require('../../services/chats/personal');
 
 const {
@@ -23,10 +24,10 @@ const getChatByUserId = async req => {
   const { id } = req.params;
   const { id: userId } = req.locals;
   const { from } = req.query;
-  const list = await getChatByUserIdService(userId, id, from);
+  const { messages, hasMore } = await getChatByUserIdService(userId, id, from);
   const { isBanned, inBan } = await checkBanService(userId, id);
   const files = await getInitFilesService('personal', { user1: id, user2: userId });
-  return responseCreator({ list, isBanned, inBan, files, type: 'personal' });
+  return responseCreator({ messages, hasMore, isBanned, inBan, files, type: 'personal' });
 };
 
 const getFiles = async req => {
@@ -53,8 +54,17 @@ const getCountAttachmentsFromChat = async req => {
   return response(list);
 };
 
+const getMessagesOffset = async req => {
+  const { offset = 0 } = req.query;
+  const { id: userId } = req.locals;
+  const { id } = req.params;
+  const { messages, hasMore } = await getMessagesOffsetService(userId, id, offset);
+  return responseCreator({ messages, hasMore });
+};
+
 module.exports = {
   getChatByUserId,
   getFiles,
   getCountAttachmentsFromChat,
+  getMessagesOffset,
 };

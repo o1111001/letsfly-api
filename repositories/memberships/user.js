@@ -77,10 +77,10 @@ const subscribe = async ({ userId, membershipId: chatMembershipId, period }) => 
         });
 
     }
-    const messages =  await getMessages(userId, membership.chatId, 30, trx);
+    const { messages, hasMore } =  await getMessages({ userId, chatId: membership.chatId }, {}, trx);
     const opponent = await getMainChatInfo(membership.chatId, trx);
     await trx.commit();
-    return { messages, opponent };
+    return { messages, opponent, hasMore };
   } catch (error) {
     await trx.rollback(error);
     throw new CustomError(error.message || error, error.status);
