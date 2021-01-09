@@ -1,4 +1,4 @@
-## MESSAGES.GG API
+## LETSFLY API
 It's a symbiosis of a **simple messenger** for communication between people and **effective sales funnel builder**
 
 ### Requirements:
