@@ -19,7 +19,7 @@ const {
 const {
   validateGetContactUsername,
   validateGetContactFullname,
-} = require('../../middlewares/contacts');
+} = require('../../validators/contacts');
 
 
 router.get('/username/:username',

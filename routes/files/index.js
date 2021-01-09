@@ -11,7 +11,7 @@ const {
 
 const {
   checkDirectory,
-} = require('../../middlewares/files');
+} = require('../../validators/files');
 
 // get pre-signed url
 router.get('/',

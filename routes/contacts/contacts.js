@@ -16,7 +16,7 @@ const {
 const {
   validateAddContact,
   validateDeleteContact,
-} = require('../../middlewares/contacts');
+} = require('../../validators/contacts');
 
 router.get('/',
   authorized,
