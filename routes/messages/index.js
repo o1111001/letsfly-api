@@ -15,7 +15,7 @@ const {
 
 const {
   validateCreateMessage,
-} = require('../../middlewares/private_messages');
+} = require('../../validators/private_messages');
 
 router.post('/',
   validateCreateMessage,

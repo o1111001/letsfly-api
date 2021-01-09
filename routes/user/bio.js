@@ -29,7 +29,7 @@ const {
     validateAbout,
     validateAvatar,
   },
-} = require('../../middlewares/user');
+} = require('../../validators/user');
 
 const { upload } = require('../../services/files');
 

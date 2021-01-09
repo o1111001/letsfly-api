@@ -25,7 +25,7 @@ const {
     validateEmail,
     validateCode,
   },
-} = require('../../middlewares/auth');
+} = require('../../validators/auth');
 
 router.post('/signup',
   validateSignUp,
