@@ -4,7 +4,7 @@ const {
   DB_NAME,
   DB_USER,
   DB_PASSWORD,
-} = require('./config/env');
+} = require('./src/config/env');
 
 const config = {
   host: DB_HOST,
